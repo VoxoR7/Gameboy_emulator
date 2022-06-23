@@ -59,8 +59,11 @@ extern void audio_init( void) {
     char music_path[2048];
 
     strcpy( music_path, main_base_path);
+    #ifdef __WIN
     strcat( music_path, "dat\\gameboy.mp3");
-
+    #else ifdef __LIN
+    strcat( music_path, "dat/gameboy.mp3");
+    #endif
     Mix_Music *music = Mix_LoadMUS( music_path);
 
     if ( music == NULL) {
