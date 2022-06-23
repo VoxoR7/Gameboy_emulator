@@ -9,7 +9,7 @@
     #include <windows.h>
     #include <minwinbase.h>
 #else
-    NOT DEFINED
+   #include <dirent.h> 
 #endif
 
 #define GET_ROM_MAX_PATH 2048
@@ -93,6 +93,29 @@ void get_rom_count( char *bpath) {
         } while( FindNextFile( hFind, &fdFile));
 
         FindClose(hFind);
+    #elif __LIN
+        DIR *d;
+        struct dirent *dir;
+        d = opendir(bpath);
+
+        char path[GET_ROM_MAX_PATH];
+
+        sprintf( path, "%s/*.*", bpath);
+
+        if (d) {
+            while ((dir = readdir(d)) != NULL) {
+                
+                char tmp_name_file[GET_ROM_MAX_PATH];
+                strcpy(tmp_name_file, dir->d_name);
+                const uint32_t file_name_size = strlen( tmp_name_file);
+                const char *last = tmp_name_file + file_name_size - 2;
+
+                if ( !strncmp( last, "gb", 2))
+                    rom_count++;
+                
+            }
+            closedir(d);
+        }
     #endif
 }
 
@@ -156,6 +179,38 @@ void get_rom_fill( char *bpath) {
         } while( FindNextFile( hFind, &fdFile));
 
         FindClose(hFind);
+    #elif __LIN
+        DIR *d;
+        struct dirent *dir;
+        d = opendir(bpath);
+
+        char path[GET_ROM_MAX_PATH];
+
+        sprintf( path, "%s/", bpath);
+
+        if (d) {
+            while ((dir = readdir(d)) != NULL) {
+                
+                char tmp_name_file[GET_ROM_MAX_PATH];
+                sprintf( path, "%s/%s", bpath, dir->d_name);
+                strcpy(tmp_name_file, dir->d_name);
+                const uint32_t file_name_size = strlen( tmp_name_file);
+                const char *last = tmp_name_file + file_name_size - 2;
+
+                if ( !strncmp( last, "gb", 2)){
+                    available_rom_path[rom_count] = malloc( sizeof( char) * (strlen( path) + 2));
+                    strcpy( available_rom_path[rom_count], path);
+
+                    available_rom_name[rom_count] = malloc( sizeof( char) * (file_name_size + 2));
+                    strcpy( available_rom_name[rom_count], dir->d_name);
+
+                    fprintf( stdout, "[TEST] file name : %s (effective size %llu, malloced size %llu)\n", available_rom_path[rom_count], strlen( available_rom_path[rom_count]), strlen( path) + 2);
+
+                    rom_count++;
+                }
+            }
+            closedir(d);
+        }
     #endif
 }
 
