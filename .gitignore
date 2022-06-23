@@ -1,0 +1,6 @@
+obj/
+.vscode/
+bin/
+.gitignore
+rom/
+!rom/README.md
