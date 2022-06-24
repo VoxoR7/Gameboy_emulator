@@ -119,7 +119,7 @@ extern void display_init( void) {
     strcpy( path, main_base_path);
     #ifdef __WIN
         strcat( path, "dat\\Roboto-Black.ttf");
-    #else if __LIN
+    #elif __LIN
         strcat( path, "dat/Roboto-Black.ttf");
     #endif
     font = TTF_OpenFont( path, 16);

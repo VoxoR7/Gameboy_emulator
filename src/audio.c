@@ -61,7 +61,7 @@ extern void audio_init( void) {
     strcpy( music_path, main_base_path);
     #ifdef __WIN
     strcat( music_path, "dat\\gameboy.mp3");
-    #else ifdef __LIN
+    #elif __LIN
     strcat( music_path, "dat/gameboy.mp3");
     #endif
     Mix_Music *music = Mix_LoadMUS( music_path);

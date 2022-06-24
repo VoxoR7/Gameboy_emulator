@@ -28,9 +28,11 @@ enfin la touche BACKSPACE représente la touche ENTER de la gameboy et ENTER rep
 
 ## Travaux future
 
-- [ ] Gestion du temps réel (avoir 59,7 fps comme sur une vrai Gameboy)
+- [x] Gestion du temps réel (avoir 59,7 fps comme sur une vrai Gameboy)
 - [ ] ROM Tetris
   - [x] Jouer à Tetris
   - [ ]  Encore des bugs à corriger comme des crash de l'émulateur ou un mauvais affichage du niveau...
+- [ ] Vérifier les instructions et finir d'implémenter les instructions
 - [ ] Autres Roms
 - [ ] Gestion de la (vrai) musique
+- [ ] Linux support

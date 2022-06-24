@@ -24,7 +24,7 @@ BIN = bin
 FAST = -D__FAST
 
 LD_FLAGS = -lmingw32 -lSDL2main -lsdl2 -lSDL2_mixer -lSDL2_ttf '-Wl,-rpath,$$ORIGIN/so' # --coverage
-C_FLAGS = -std=c17 -Wall -g -D__REALITY -D__WIN $(FAST) #-D__DEBUG -D__STEP --coverage
+C_FLAGS = -std=c17 -Wall -g -D__REALITY -D__WIN $(FAST) -D__DEBUG # -D__STEP --coverage
 
 PROG_NAME = VGB_emulator.exe
 
