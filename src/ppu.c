@@ -6,6 +6,8 @@
 #include "memory.h"
 #include "interrupt.h"
 #include "display.h"
+#include "real_time.h"
+#include "touche.h"
 
 #ifdef __DEBUG
     #include <stdio.h>
@@ -114,18 +116,18 @@ extern void ppu_run( uint64_t cycles) {
 
         case PPU_OAM:
 
-            if ( ppu.cycles >= 20) {
+            if ( ppu.cycles >= 80) {
 
-                ppu.cycles -= 20;
+                ppu.cycles -= 80;
                 ppu.state = PPU_PT;
             }
 
             break;
         case PPU_PT:
 
-            if ( ppu.cycles >= 43) {
+            if ( ppu.cycles >= 172) {
 
-                ppu.cycles -= 43;
+                ppu.cycles -= 172;
                 ppu.state = PPU_HBLANK;
                 hblank();
             }
@@ -133,9 +135,9 @@ extern void ppu_run( uint64_t cycles) {
             break;
         case PPU_HBLANK:
 
-            if ( ppu.cycles >= 51) {
+            if ( ppu.cycles >= /*204*/ 42) {
 
-                ppu.cycles -= 51;
+                ppu.cycles -= /*204*/ 42;
                 increase_ly( &ppu);
 
                 if ( ppu.ly == 144) {
@@ -152,24 +154,25 @@ extern void ppu_run( uint64_t cycles) {
             break;
         case PPU_VBLANK:
 
-            if ( ppu.cycles < 114)
+            if ( ppu.cycles < /*456*/ 20)
                 return;
 
-            ppu.cycles -= 114;
+            ppu.cycles -= /*456*/ 20;
             increase_ly( &ppu);
 
             if ( ppu.ly >= 153) {
 
                 ppu.ly = 0;
                 ppu.state = PPU_OAM;
-                display_wait();
+                real_time_wait();
+
+                touche_get();
+
+                if ( touche_appuyer( QUITTER) || touche_appuyer( ESCAPE))
+                    exit( EXIT_SUCCESS);
+
                 display_clear();
                 display_draw_line( ppu.ly);
-                #ifdef __DEBUG
-                    display_try();
-                #endif
-                //display_tile( 0x00);
-                //fprintf( stdout, "\n\n\n\n\n\n\n\n\n");
             }
 
             break;

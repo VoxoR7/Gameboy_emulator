@@ -21,15 +21,17 @@ SRC = src
 INC = inc
 BIN = bin
 
-LD_FLAGS = -lmingw32 -lSDL2main -lsdl2 -lSDL2_mixer -lSDL2_ttf '-Wl,-rpath,$$ORIGIN/so'
-C_FLAGS = -std=c17 -Wall -O2 -D__REALITY -D__WIN #-D__DEBUG -D__STEP 
+FAST = -D__FAST
+
+LD_FLAGS = -lmingw32 -lSDL2main -lsdl2 -lSDL2_mixer -lSDL2_ttf '-Wl,-rpath,$$ORIGIN/so' # --coverage
+C_FLAGS = -std=c17 -Wall -g -D__REALITY -D__WIN $(FAST) #-D__DEBUG -D__STEP --coverage
 
 PROG_NAME = VGB_emulator.exe
 
 all: $(BIN)\$(PROG_NAME)
-	strip $(BIN)\$(PROG_NAME)
+#	strip $(BIN)\$(PROG_NAME)
 
-$(BIN)\$(PROG_NAME): $(OBJ)\main.o $(OBJ)\get_rom.o $(OBJ)\cpu.o $(OBJ)\memory.o $(OBJ)\timer.o $(OBJ)\interrupt.o $(OBJ)\ppu.o $(OBJ)\touche.o $(OBJ)\display.o $(OBJ)\audio.o
+$(BIN)\$(PROG_NAME): $(OBJ)\main.o $(OBJ)\get_rom.o $(OBJ)\cpu.o $(OBJ)\memory.o $(OBJ)\timer.o $(OBJ)\interrupt.o $(OBJ)\ppu.o $(OBJ)\touche.o $(OBJ)\display.o $(OBJ)\audio.o $(OBJ)\real_time.o
 	$(CC) $^ -o $@ -L$(SDL_LIB) -L$(SDL_MIX_LIB) -L$(SDL_TTF_LIB) $(LD_FLAGS)
 
 $(OBJ)\main.o: $(SRC)\main.c $(INC)\main.h
@@ -61,6 +63,9 @@ $(OBJ)\display.o: $(SRC)\display.c $(INC)\display.h
 
 $(OBJ)\audio.o: $(SRC)\audio.c $(INC)\audio.h
 	$(CC) -c $< -o $@ -I$(INC) -I$(SDL_INC) -I$(SDL_MIX_INC) $(C_FLAGS)
+
+$(OBJ)\real_time.o: $(SRC)\real_time.c $(INC)\real_time.h
+	$(CC) -c $< -o $@ -I$(INC) -I$(SDL_INC) $(C_FLAGS)
 
 clean:
 	del $(OBJ)\*.o

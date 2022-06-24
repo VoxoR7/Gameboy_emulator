@@ -20,3 +20,17 @@ Une fois dans le jeu, les touches Z, Q, S et D représente les fléches directio
 les touches P et L représente respectivement le bouton "A" et "B" d'une gameboy,
 enfin la touche BACKSPACE représente la touche ENTER de la gameboy et ENTER représente la touche SELECT d'une gameboy.
 
+## Système d'exploitation
+
+- [x] Windows
+- [ ] Linux
+- [ ] MacOs
+
+## Travaux future
+
+- [ ] Gestion du temps réel (avoir 59,7 fps comme sur une vrai Gameboy)
+- [ ] ROM Tetris
+  - [x] Jouer à Tetris
+  - [ ]  Encore des bugs à corriger comme des crash de l'émulateur ou un mauvais affichage du niveau...
+- [ ] Autres Roms
+- [ ] Gestion de la (vrai) musique

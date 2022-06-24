@@ -15,6 +15,7 @@
 #include "ppu.h"
 #include "touche.h"
 #include "audio.h"
+#include "real_time.h"
 
 char *main_base_path;
 
@@ -96,14 +97,15 @@ void choose_rom( char **rom_path) {
         exit( EXIT_FAILURE);
     }
 
-    fprintf( stdout, "listing all available rom ...\n");
+    char *rom_name = malloc( sizeof( char) * ROM_NAME_MAX);
 
-    char *rom_name = malloc( sizeof( char) * 2048);
+    if ( rom_name == NULL) {
 
-    for ( uint16_t i = 0; i < get_rom_number(); i++) {
+        #ifdef __DEBUG
+            fprintf( stderr, "[FATAL] not enough memory %s:%d !\n", __FILE__, __LINE__);
+        #endif
 
-        get_rom_next( NULL, &rom_name, NEXT);
-        fprintf( stdout, "\t%s\n", rom_name);
+        exit( EXIT_FAILURE);
     }
 
     uint8_t d_pressed = 0, q_pressed = 0;
@@ -137,19 +139,24 @@ void choose_rom( char **rom_path) {
         
         if ( touche_appuyer( S))
             audio_volume_down();
+
+        if ( touche_appuyer( ESCAPE)) {
+
+            free( rom_name);
+            exit( EXIT_SUCCESS);
+        }
     }
 
     free( rom_name);
-
-    fprintf( stdout, "rom choosed : %s\n", *rom_path);
 }
 
 int main( int argc, char *argv[]) {
 
+    atexit( main_destroy);
+
     main_base_path = NULL;
 
     banner();
-    setup_base_path();
 
     if ( argc != 1) {
 
@@ -160,6 +167,7 @@ int main( int argc, char *argv[]) {
         exit( EXIT_FAILURE);
     }
 
+    setup_base_path();
     display_init();
     touche_init();
     #ifdef __DEBUG
@@ -176,30 +184,19 @@ int main( int argc, char *argv[]) {
     timer_init();
     interrupt_init();
     ppu_init();
+    real_time_init();
 
     uint64_t cycles;
 
     audio_tetris();
+    real_time_start();
 
     while ( 1) {
-
-        touche_get();
-
-        if ( touche_appuyer( QUITTER) || touche_appuyer( ESCAPE))
-            exit( EXIT_SUCCESS);
 
         cycles = cpu_run();
         ppu_run( cycles);
         timer_run( cycles);
         interrupt_run();
-
-        /*#ifdef __DEBUG
-            if ( cycles > 1000000 && cycles < 1000010)
-                display_try();
-        #endif*/
-
-        /*display_try();
-        display_draw();*/
     }
 
     exit( EXIT_SUCCESS);

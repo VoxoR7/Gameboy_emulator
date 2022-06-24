@@ -1,12 +1,13 @@
 #include "main.h"
 #include "memory.h"
 
-#include "cpu.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
+
+#include "cpu.h"
+#include "touche.h"
 
 #define REALITY 0
 #define MEMORY_SIZE 0x10000
@@ -408,7 +409,6 @@ extern void memory_write8( uint16_t addr, uint8_t value) {
 
     else if ( addr == 0xFF00) { // P1/JOYP - Joypad (R/W)
 
-        // fprintf( stdout, "[INFO] writing 0xFF00 value -> 0x%02x\n", value);
         memory[addr] = value;
     }
 
@@ -523,6 +523,8 @@ extern void memory_write8( uint16_t addr, uint8_t value) {
 
 extern uint8_t memory_read8( uint16_t addr) {
 
+    #ifndef __FAST
+
     if ( addr < 0x4000) // 8KB ROM Bank 00 (in cartridge, fixed at bank 00)
         return memory[addr];
     else if ( addr >= 0x4000 && addr < 0x8000 && emul_current_rom_bank == 1) // 8KB ROM Bank 01
@@ -540,8 +542,11 @@ extern uint8_t memory_read8( uint16_t addr) {
     else if ( addr >= 0xFEA0 && addr < 0xFF00) // Not Usable - Nintendo says use of this area is prohibited
         return 0;
 
-    else if ( addr == 0xFF00) // P1/JOYP - Joypad (R/W)
+    else if ( addr == 0xFF00) { // P1/JOYP - Joypad (R/W)
+
+        touche_get();
         return memory[addr];
+    }
 
     else if ( addr == 0xFF01) // SB - Serial transfer data (R/W)
         return memory[addr];
@@ -625,6 +630,18 @@ extern uint8_t memory_read8( uint16_t addr) {
         NO_IMPL
         fprintf( stdout, "(read8) 0x%02x\n", addr);
     #endif
+
+    #else // __FAST
+
+    if ( addr == 0xFF00) { // P1/JOYP - Joypad (R/W)
+
+        touche_get();
+        return memory[addr];
+    }
+
+    return memory[addr];
+
+    #endif// __FAST
     return 0;
 }
 
@@ -668,6 +685,11 @@ extern void memory_special_service_ly( uint16_t value) {
 extern void memory_special_service_div( uint8_t value) {
 
     memory[0xFF04] = value;
+}
+
+extern uint8_t memory_special_service_read_joy( void) {
+
+    return memory[0xFF00];
 }
 
 #ifdef __STEP

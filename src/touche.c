@@ -26,10 +26,21 @@ void touche_destroy( void) {
 
 	int i;
 
-	for ( i = 0 ; i < NB_TOUCHES ; i++ )
-		free((configuration + i )->descriptif);
+	if ( configuration == NULL) {
 
-	free( keyboardState);
+		if ( keyboardState != NULL) 
+			free( keyboardState);
+
+		return;
+	}
+
+	for ( i = 0 ; i < NB_TOUCHES ; i++ )
+		if ( (configuration + i )->descriptif != NULL)
+			free( (configuration + i )->descriptif);
+
+	if ( keyboardState != NULL) 
+		free( keyboardState);
+
 	free( configuration);
 }
 
@@ -43,7 +54,7 @@ extern void touche_init( void) {
 
 	/* allocation de la memoire necessaire au fonctionnement du module */
 
-	keyboardState = malloc( sizeof( short ) * NB_TOUCHES );
+	keyboardState = malloc( sizeof( short) * NB_TOUCHES );
 	configuration = malloc( sizeof( configTouches_t) * NB_TOUCHES);
 
 	for ( i = 0 ; i < NB_TOUCHES ; i++ ) {
@@ -57,7 +68,7 @@ extern void touche_init( void) {
 
 	SDL_touche_default();
 
-	memory_write8( 0xFF00, memory_read8( 0xFF00) & 0xF0);
+	memory_write8( 0xFF00, memory_special_service_read_joy() & 0xF0);
 }
 
 extern void touche_get( void) {
@@ -121,75 +132,49 @@ extern void touche_get( void) {
 		}
 	}
 
-	if ( (memory_read8( 0xFF00) & 0b00100000) == 0) {
+	if ( (memory_special_service_read_joy() & 0b00100000) == 0) {
 
 		if ( touche_appuyer( P))
-			memory_write8( 0xFF00, memory_read8( 0xFF00) & ~0b00000001);
+			memory_write8( 0xFF00, memory_special_service_read_joy() & ~0b00000001);
 		else
-			memory_write8( 0xFF00, memory_read8( 0xFF00) | 0b00000001);
+			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00000001);
 
 		if ( touche_appuyer( L))
-			memory_write8( 0xFF00, memory_read8( 0xFF00) & ~0b00000010);
+			memory_write8( 0xFF00, memory_special_service_read_joy() & ~0b00000010);
 		else
-			memory_write8( 0xFF00, memory_read8( 0xFF00) | 0b00000010);
+			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00000010);
 
 		if ( touche_appuyer( BACKSPACE))
-			memory_write8( 0xFF00, memory_read8( 0xFF00) & ~0b00001000);
+			memory_write8( 0xFF00, memory_special_service_read_joy() & ~0b00001000);
 		else
-			memory_write8( 0xFF00, memory_read8( 0xFF00) | 0b00001000);
+			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00001000);
 
 		if ( touche_appuyer( ENTER))
-			memory_write8( 0xFF00, memory_read8( 0xFF00) & ~0b00000100);
+			memory_write8( 0xFF00, memory_special_service_read_joy() & ~0b00000100);
 		else
-			memory_write8( 0xFF00, memory_read8( 0xFF00) | 0b00000100);
-	} else if ( (memory_read8( 0xFF00) & 0b00010000) == 0) {
+			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00000100);
+	} else if ( (memory_special_service_read_joy() & 0b00010000) == 0) {
 
 		if ( touche_appuyer( Z))
-			memory_write8( 0xFF00, memory_read8( 0xFF00) & ~0b00000100);
+			memory_write8( 0xFF00, memory_special_service_read_joy() & ~0b00000100);
 		else
-			memory_write8( 0xFF00, memory_read8( 0xFF00) | 0b00000100);
+			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00000100);
 
 		if ( touche_appuyer( S))
-			memory_write8( 0xFF00, memory_read8( 0xFF00) & ~0b00001000);
+			memory_write8( 0xFF00, memory_special_service_read_joy() & ~0b00001000);
 		else
-			memory_write8( 0xFF00, memory_read8( 0xFF00) | 0b00001000);
+			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00001000);
 
 		if ( touche_appuyer( Q))
-			memory_write8( 0xFF00, memory_read8( 0xFF00) & ~0b00000010);
+			memory_write8( 0xFF00, memory_special_service_read_joy() & ~0b00000010);
 		else
-			memory_write8( 0xFF00, memory_read8( 0xFF00) | 0b00000010);
+			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00000010);
 
 		if ( touche_appuyer( D))
-			memory_write8( 0xFF00, memory_read8( 0xFF00) & ~0b00000001);
+			memory_write8( 0xFF00, memory_special_service_read_joy() & ~0b00000001);
 		else
-			memory_write8( 0xFF00, memory_read8( 0xFF00) | 0b00000001);
-	} 
-	#ifdef __DEBUG
-	/*else
-		fprintf( stdout, "ERREUR TOUCHE\n");*/
-	#endif
-
-	/*if ( (memory_read8( 0xFF00) & 0b00100000) == 0) {
-
-		if ( touche_appuyer( P))
-			fprintf( stdout, "[INFO] A pressed\n");
-		if ( touche_appuyer( L))
-			fprintf( stdout, "[INFO] B pressed\n");
-	} else if ( (memory_read8( 0xFF00) & 0b00010000) == 0) {
-
-		if ( touche_appuyer( Z))
-			fprintf( stdout, "[INFO] UP pressed\n");
-		if ( touche_appuyer( S))
-			fprintf( stdout, "[INFO] DOWN pressed\n");
-		if ( touche_appuyer( Q))
-			fprintf( stdout, "[INFO] LEFT pressed\n");
-		if ( touche_appuyer( D))
-			fprintf( stdout, "[INFO] RIGHT pressed\n");
-	} 
-	#ifdef __DEBUG*/
-	/*else
-		fprintf( stdout, "ERREUR TOUCHE\n");*/
-	/*#endif*/
+			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00000001);
+	}
 }
 
 extern uint8_t touche_appuyer( uint16_t touche) {
