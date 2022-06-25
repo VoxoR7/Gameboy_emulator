@@ -173,6 +173,10 @@ extern void ppu_run( uint64_t cycles) {
 
                 display_clear();
                 display_draw_line( ppu.ly);
+
+                #ifdef __DEBUG
+                    display_try();
+                #endif
             }
 
             break;

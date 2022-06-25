@@ -67,7 +67,7 @@ switch ( opcode) {
                 fprintf( stderr, "[INFO] : 0x04 B++ REVIEWED\n");
         #endif
 
-        if ( (((registers.b & 0xf) + (registers.b & 0xf)) & 0x10) == 0x10 )
+        if ( (((registers.b & 0x0F) + (registers.b & 0x0F)) & 0x10) == 0x10 )
             registers.f |= FLAGS_H;
         else
             registers.f &= ~FLAGS_H;
@@ -1130,6 +1130,21 @@ switch ( opcode) {
         #endif
 
         break;
+    case 66: // 0x42 B = D
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0x42 B = D\n");
+        #endif
+
+        registers.b = registers.d;
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : b = 0x%02x (%"PRIu8")\n", registers.b, registers.b);
+        #endif
+
+        break;
     case 70: // 0x46 B = *(HL)
 
         #ifdef __STEP
@@ -1780,6 +1795,34 @@ switch ( opcode) {
         #endif
 
         break;
+    case 144: // 0x90 A -= B
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0x90 A -= B\n");
+        #endif
+
+        registers.f = FLAGS_N;
+        
+        if ( (((registers.a & 0x0F) - (registers.b & 0x0F)) & 0x10) == 0x10 )
+            registers.f |= FLAGS_H;
+        else
+            registers.f &= ~FLAGS_H;
+
+        registers.a -= registers.b;
+
+        if ( registers.a > registers.b)
+            registers.f |= FLAGS_C;
+
+        if ( !(registers.a))
+            registers.f |= FLAGS_Z;
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : a = 0x%02x (%"PRIu8")\n", registers.a, registers.a);
+        #endif
+
+        break;
     case 145: // 0x91 A -= C
 
         #ifdef __STEP
@@ -1788,6 +1831,11 @@ switch ( opcode) {
         #endif
 
         registers.f = FLAGS_N;
+
+        if ( (((registers.a & 0x0F) - (registers.c & 0x0F)) & 0x10) == 0x10 )
+            registers.f |= FLAGS_H;
+        else
+            registers.f &= ~FLAGS_H;
 
         registers.a -= registers.c;
 

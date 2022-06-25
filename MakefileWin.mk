@@ -1,5 +1,7 @@
 # E:\Documents\Code\C\mingw64\bin\mingw32-make.exe
 
+include Makefile.conf
+
 strip = E:\Documents\Code\C\mingw64\bin\strip.exe
 
 CC = E:\Documents\Code\C\mingw64\bin\gcc.exe
@@ -21,15 +23,12 @@ SRC = src
 INC = inc
 BIN = bin
 
-FAST = -D__FAST
-
-LD_FLAGS = -lmingw32 -lSDL2main -lsdl2 -lSDL2_mixer -lSDL2_ttf '-Wl,-rpath,$$ORIGIN/so' # --coverage
-C_FLAGS = -std=c17 -Wall -g -D__REALITY -D__WIN $(FAST) -D__DEBUG # -D__STEP --coverage
+LD_FLAGS = -lmingw32 -lSDL2main -lsdl2 -lSDL2_mixer -lSDL2_ttf # '-Wl,-rpath,$$ORIGIN/so' --coverage
 
 PROG_NAME = VGB_emulator.exe
 
 all: $(BIN)\$(PROG_NAME)
-#	strip $(BIN)\$(PROG_NAME)
+	strip $(BIN)\$(PROG_NAME)
 
 $(BIN)\$(PROG_NAME): $(OBJ)\main.o $(OBJ)\get_rom.o $(OBJ)\cpu.o $(OBJ)\memory.o $(OBJ)\timer.o $(OBJ)\interrupt.o $(OBJ)\ppu.o $(OBJ)\touche.o $(OBJ)\display.o $(OBJ)\audio.o $(OBJ)\real_time.o
 	$(CC) $^ -o $@ -L$(SDL_LIB) -L$(SDL_MIX_LIB) -L$(SDL_TTF_LIB) $(LD_FLAGS)

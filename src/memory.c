@@ -536,6 +536,9 @@ extern uint8_t memory_read8( uint16_t addr) {
     else if ( addr >= 0xC000 && addr < 0xE000) // 4KB Work RAM Bank 0 (WRAM)
         return memory[addr];
 
+    else if ( addr >= 0xE000 && addr < 0xFDFF) // Same as C000-FDFF (ECHO) (typically not used)
+        return memory[addr - (0xE000 - 0xC000)];
+
     else if ( addr >= 0xFE00 && addr < 0xFEA0) // Sprite attribute table (OAM)
         return memory[addr];
 
