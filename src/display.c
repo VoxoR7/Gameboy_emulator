@@ -439,8 +439,6 @@ extern void display_clear( void) {
 
 extern void display_draw_line( uint8_t ly) {
 
-    uint8_t scy = 0, scx = 0;
-
     uint16_t tile[20];
     struct sprite sprite[40];
     uint8_t sprite_count = 0;

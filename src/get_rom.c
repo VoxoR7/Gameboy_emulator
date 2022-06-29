@@ -169,7 +169,7 @@ void get_rom_fill( char *bpath) {
                             available_rom_name[rom_count] = malloc( sizeof( char) * (file_name_size + 2));
                             strcpy( available_rom_name[rom_count], fdFile.cFileName);
 
-                            fprintf( stdout, "[TEST] file name : %s (effective size %llu, malloced size %llu)\n", available_rom_path[rom_count], strlen( available_rom_path[rom_count]), strlen( path) + 2);
+                            // fprintf( stdout, "[TEST] file name : %s (effective size %llu, malloced size %llu)\n", available_rom_path[rom_count], strlen( available_rom_path[rom_count]), strlen( path) + 2);
 
                             rom_count++;
                         }
@@ -204,7 +204,7 @@ void get_rom_fill( char *bpath) {
                     available_rom_name[rom_count] = malloc( sizeof( char) * (file_name_size + 2));
                     strcpy( available_rom_name[rom_count], dir->d_name);
 
-                    fprintf( stdout, "[TEST] file name : %s (effective size %llu, malloced size %llu)\n", available_rom_path[rom_count], strlen( available_rom_path[rom_count]), strlen( path) + 2);
+                    // fprintf( stdout, "[TEST] file name : %s (effective size %lu, malloced size %lu)\n", available_rom_path[rom_count], strlen( available_rom_path[rom_count]), strlen( path) + 2);
 
                     rom_count++;
                 }

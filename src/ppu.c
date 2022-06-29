@@ -106,10 +106,6 @@ extern void ppu_run( uint64_t cycles) {
     if ( !do_cycles)
         return;
 
-    #ifdef __DEBUG
-        // fprintf( stdout, "[INFO] : ppu is running %"PRIu8" cycles\n", do_cycles);
-    #endif
-
     ppu.cycles += do_cycles;
 
     switch ( ppu.state) {
@@ -158,6 +154,7 @@ extern void ppu_run( uint64_t cycles) {
                 return;
 
             ppu.cycles -= /*456*/ 20;
+    
             increase_ly( &ppu);
 
             if ( ppu.ly >= 153) {

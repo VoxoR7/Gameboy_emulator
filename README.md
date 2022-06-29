@@ -1,5 +1,32 @@
 # VoxoR Gameboy emulator
 
+## Prérequis (installation)
+
+### Windows
+
+Aucun prérequis. Le jeu est prêt à être lancé !
+
+### Linux
+
+Testé sur :
+
+- [x] Ubuntu 20.04.3
+
+3 librairies supplémentaire sont nécessaires :
+
+- libmodplug1
+- libfluidsynth2
+- libopusfile0
+
+(~1Mb pour les 3 libraries)
+
+Afin d'installer ces 3 libraries, ouvrir un terminal dans le dossier parent puis taper les commandes suivantes :
+
+```
+sudo chmod 500 ./install.sh
+sudo ./install.sh
+```
+
 ## Avant de commencer
 
 Récuperer les roms GameBoy voulu et les placer dans le dossier /rom. 
@@ -23,16 +50,14 @@ enfin la touche BACKSPACE représente la touche ENTER de la gameboy et ENTER rep
 ## Système d'exploitation
 
 - [x] Windows
-- [ ] Linux
-- [ ] MacOs
+- [x] Linux
+- [ ] MacOs (non testé)
 
 ## Travaux future
 
-- [x] Gestion du temps réel (avoir 59,7 fps comme sur une vrai Gameboy)
 - [ ] ROM Tetris
   - [x] Jouer à Tetris
   - [ ]  Encore des bugs à corriger comme des crash de l'émulateur ou un mauvais affichage du niveau...
 - [ ] Vérifier les instructions et finir d'implémenter les instructions
 - [ ] Autres Roms
 - [ ] Gestion de la (vrai) musique
-- [ ] Linux support
