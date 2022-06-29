@@ -1,4 +1,4 @@
-# VoxoR Gameboy emulator
+# VoxoR Gameboy Emulator
 
 ## Prérequis (installation)
 
@@ -27,6 +27,10 @@ sudo chmod 500 ./install.sh
 sudo ./install.sh
 ```
 
+### MacOs
+
+Non testé.
+
 ## Avant de commencer
 
 Récuperer les roms GameBoy voulu et les placer dans le dossier /rom. 
@@ -46,12 +50,6 @@ Une fois les options choisis, appuyer sur ENTER pour émuler le fichier choisis.
 Une fois dans le jeu, les touches Z, Q, S et D représente les fléches directionnelles,
 les touches P et L représente respectivement le bouton "A" et "B" d'une gameboy,
 enfin la touche BACKSPACE représente la touche ENTER de la gameboy et ENTER représente la touche SELECT d'une gameboy.
-
-## Système d'exploitation
-
-- [x] Windows
-- [x] Linux
-- [ ] MacOs (non testé)
 
 ## Travaux future
 

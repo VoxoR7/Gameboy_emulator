@@ -1796,10 +1796,11 @@ switch ( opcode) {
 
         break;
     case 144: // 0x90 A -= B
+    // reviewed OK
 
         #ifdef __STEP
             if ( verbose)
-                fprintf( stderr, "[INFO] : 0x90 A -= B\n");
+                fprintf( stderr, "[INFO] : 0x90 A -= B REVIEWED\n");
         #endif
 
         registers.f = FLAGS_N;
@@ -1809,18 +1810,18 @@ switch ( opcode) {
         else
             registers.f &= ~FLAGS_H;
 
-        registers.a -= registers.b;
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : a 0x%02x (%"PRIu8"); b 0x%02x (%"PRIu8"); res a 0x%02x (%"PRIu8")\n", registers.a, registers.a, registers.b, registers.b, (uint8_t)(registers.a - registers.b), (uint8_t)(registers.a - registers.b));
+        #endif
 
-        if ( registers.a > registers.b)
+        if ( registers.a < registers.b)
             registers.f |= FLAGS_C;
+
+        registers.a -= registers.b;
 
         if ( !(registers.a))
             registers.f |= FLAGS_Z;
-
-        #ifdef __STEP
-            if ( verbose)
-                fprintf( stderr, "[INFO] : a = 0x%02x (%"PRIu8")\n", registers.a, registers.a);
-        #endif
 
         break;
     case 145: // 0x91 A -= C
@@ -1874,19 +1875,93 @@ switch ( opcode) {
         #endif
 
         break;
-    case 161: // 0xA1 A &= C
+    case 153: // 0x99 A -= (C + C_FLAG)
 
         #ifdef __STEP
             if ( verbose)
-                fprintf( stderr, "[INFO] : 0xA1 A &= C\n");
+                fprintf( stderr, "[INFO] : 0x99 A -= (C + C_FLAG)\n");
+        #endif
+
+        if ( registers.f & FLAGS_C) {
+
+            registers.f = FLAGS_N;
+            
+            if ( (((registers.a & 0x0F) - (registers.c & 0x0F) - 1) & 0x10) == 0x10 )
+                registers.f |= FLAGS_H;
+            else
+                registers.f &= ~FLAGS_H;
+
+            #ifdef __STEP
+                if ( verbose)
+                    fprintf( stderr, "[INFO] : a 0x%02x (%"PRIu8"); c 0x%02x (%"PRIu8"); carry YES; res a 0x%02x (%"PRIu8")\n", registers.a, registers.a, registers.c, registers.c, (uint8_t)(registers.a - registers.c), (uint8_t)(registers.a - registers.c - 1));
+            #endif
+
+            if ( registers.a < ( registers.c + 1))
+                registers.f |= FLAGS_C;
+
+            registers.a -= ( registers.c + 1);
+
+            if ( !(registers.a))
+                registers.f |= FLAGS_Z;
+        } else {
+
+            registers.f = FLAGS_N;
+            
+            if ( (((registers.a & 0x0F) - (registers.c & 0x0F)) & 0x10) == 0x10 )
+                registers.f |= FLAGS_H;
+            else
+                registers.f &= ~FLAGS_H;
+
+            #ifdef __STEP
+                if ( verbose)
+                    fprintf( stderr, "[INFO] : a 0x%02x (%"PRIu8"); c 0x%02x (%"PRIu8"); carry NO; res a 0x%02x (%"PRIu8")\n", registers.a, registers.a, registers.c, registers.c, (uint8_t)(registers.a - registers.c), (uint8_t)(registers.a - registers.c));
+            #endif
+
+            if ( registers.a < registers.c)
+                registers.f |= FLAGS_C;
+
+            registers.a -= registers.c;
+
+            if ( !(registers.a))
+                registers.f |= FLAGS_Z;
+        }
+
+        break;
+    case 160: // 0xA0 A &= B
+    // reviewed
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0xA0 A &= B REVIEWED\n");
+        #endif
+
+        registers.a &= registers.b;
+
+        if ( registers.a)
+            registers.f = FLAGS_H;
+        else
+            registers.f = FLAGS_Z | FLAGS_H;
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : a 0x%02x (%"PRIu8")\n", registers.a, registers.a);
+        #endif
+
+        break;
+    case 161: // 0xA1 A &= C
+    // reviewed
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0xA1 A &= C REVIEWED\n");
         #endif
 
         registers.a &= registers.c;
 
         if ( registers.a)
-            registers.f = 0;
+            registers.f = FLAGS_H;
         else
-            registers.f = FLAGS_Z;
+            registers.f = FLAGS_Z | FLAGS_H;
 
         #ifdef __STEP
             if ( verbose)
@@ -1895,10 +1970,11 @@ switch ( opcode) {
 
         break;
     case 167: // 0xA7 A &= A
+    // reviewed
 
         #ifdef __STEP
             if ( verbose)
-                fprintf( stderr, "[INFO] : 0xA7 A &= A\n");
+                fprintf( stderr, "[INFO] : 0xA7 A &= A REVIEWED\n");
         #endif
 
         if ( registers.a)
@@ -1912,11 +1988,33 @@ switch ( opcode) {
         #endif
 
         break;
-    case 169: // 0xA9 A ^= C
+    case 168: // 0xA8 A ^= B
+        // reviewed OK
 
         #ifdef __STEP
             if ( verbose)
-                fprintf( stderr, "[INFO] :0xA9 A ^= C\n");
+                fprintf( stderr, "[INFO] : 0xA8 A ^= B REVIEWED\n");
+        #endif
+
+        registers.a ^= registers.b;
+
+        if ( registers.a)
+            registers.f = 0;
+        else
+            registers.f = FLAGS_Z;
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : a 0x%02x (%"PRIu8")\n", registers.a, registers.a);
+        #endif
+
+        break;
+    case 169: // 0xA9 A ^= C
+        // reviewed OK
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0xA9 A ^= C REVIEWED\n");
         #endif
 
         registers.a ^= registers.c;
@@ -3332,6 +3430,58 @@ switch ( opcode) {
 
         registers.pc = memory_read16( registers.sp);
         registers.sp += 2;
+
+        break;
+    case 222: // 0xDE A -= (XX + C_FLAG)
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0xDE A -= (XX + C_FLAG)\n");
+        #endif
+
+        if ( registers.f & FLAGS_C) {
+
+            registers.f = FLAGS_N;
+            
+            if ( (((registers.a & 0x0F) - (op8 & 0x0F) - 1) & 0x10) == 0x10 )
+                registers.f |= FLAGS_H;
+            else
+                registers.f &= ~FLAGS_H;
+
+            #ifdef __STEP
+                if ( verbose)
+                    fprintf( stderr, "[INFO] : a 0x%02x (%"PRIu8"); XX 0x%02x (%"PRIu8"); carry YES; res a 0x%02x (%"PRIu8")\n", registers.a, registers.a, op8, op8, (uint8_t)(registers.a - op8), (uint8_t)(registers.a - op8 - 1));
+            #endif
+
+            if ( registers.a < ( op8 + 1))
+                registers.f |= FLAGS_C;
+
+            registers.a -= ( op8 + 1);
+
+            if ( !(registers.a))
+                registers.f |= FLAGS_Z;
+        } else {
+
+            registers.f = FLAGS_N;
+            
+            if ( (((registers.a & 0x0F) - (op8 & 0x0F)) & 0x10) == 0x10 )
+                registers.f |= FLAGS_H;
+            else
+                registers.f &= ~FLAGS_H;
+
+            #ifdef __STEP
+                if ( verbose)
+                    fprintf( stderr, "[INFO] : a 0x%02x (%"PRIu8"); XX 0x%02x (%"PRIu8"); carry NO; res a 0x%02x (%"PRIu8")\n", registers.a, registers.a, op8, op8, (uint8_t)(registers.a - op8), (uint8_t)(registers.a - op8));
+            #endif
+
+            if ( registers.a < op8)
+                registers.f |= FLAGS_C;
+
+            registers.a -= op8;
+
+            if ( !(registers.a))
+                registers.f |= FLAGS_Z;
+        }
 
         break;
     case 224: // 0xE0 *(0xFF00 + XX) = A
