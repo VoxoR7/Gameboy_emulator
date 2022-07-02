@@ -131,9 +131,9 @@ extern void ppu_run( uint64_t cycles) {
             break;
         case PPU_HBLANK:
 
-            if ( ppu.cycles >= /*204*/ 42) {
+            if ( ppu.cycles >= 204 /*42*/) {
 
-                ppu.cycles -= /*204*/ 42;
+                ppu.cycles -= 204 /*42*/;
                 increase_ly( &ppu);
 
                 if ( ppu.ly == 144) {
@@ -150,10 +150,10 @@ extern void ppu_run( uint64_t cycles) {
             break;
         case PPU_VBLANK:
 
-            if ( ppu.cycles < /*456*/ 20)
+            if ( ppu.cycles < 456 /*20*/)
                 return;
 
-            ppu.cycles -= /*456*/ 20;
+            ppu.cycles -= 456 /*20*/;
     
             increase_ly( &ppu);
 

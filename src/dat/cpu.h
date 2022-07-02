@@ -491,10 +491,11 @@ switch ( opcode) {
 
         break;
     case 26: // 0x1A A = *(DE)
+        // reviewed OK
 
         #ifdef __STEP
             if ( verbose)
-                fprintf( stderr, "[INFO] : 0x1A A = *(DE)\n");
+                fprintf( stderr, "[INFO] : 0x1A A = *(DE) REVIEWED\n");
         #endif
 
         registers.a = memory_read8( registers.de);
@@ -506,10 +507,11 @@ switch ( opcode) {
 
         break;
     case 27: // 0x1B DE--
+        // reviewed OK
 
         #ifdef __STEP
             if ( verbose)
-                fprintf( stderr, "[INFO] : 0x1B DE--\n");
+                fprintf( stderr, "[INFO] : 0x1B DE-- REVIEWED\n");
         #endif
 
         (registers.de)--;
@@ -521,11 +523,17 @@ switch ( opcode) {
 
         break;
     case 28: // 0x1C E++
+        // reviewed OK
 
         #ifdef __STEP
             if ( verbose)
-                fprintf( stderr, "[INFO] : 0x1C E++\n");
+                fprintf( stderr, "[INFO] : 0x1C E++ REVIEWED\n");
         #endif
+
+        if ( (registers.e & 0x0F) == 0x0F)
+            registers.f |= FLAGS_H;
+        else
+            registers.f &= ~FLAGS_H;
 
         (registers.e)++;
 
@@ -544,18 +552,27 @@ switch ( opcode) {
 
         break;
     case 29: // 0x1D E--
+        // reviewed OK
 
         #ifdef __STEP
             if ( verbose)
-                fprintf( stderr, "[INFO] : 0x1D E--\n");
+                fprintf( stderr, "[INFO] : 0x1D E-- REVIEWED\n");
         #endif
+
+        if ( (registers.e & 0x0F) == 0x00)
+            registers.f |= FLAGS_H;
+        else
+            registers.f &= ~FLAGS_H;
 
         (registers.e)--;
 
         if ( registers.e)
-            registers.f = FLAGS_N;
-        else
-            registers.f = FLAGS_Z | FLAGS_N;
+            registers.f &= ~( FLAGS_Z | FLAGS_N);
+        else {
+
+            registers.f &= (~FLAGS_N);
+            registers.f |= FLAGS_Z;
+        }
 
         #ifdef __STEP
             if ( verbose)
