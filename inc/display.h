@@ -9,7 +9,8 @@ extern void display_second_destroy( void);
 
 extern void display_try( void);
 
-extern void display_draw_line( uint8_t ly);
+extern void display_draw_line_sprite( uint8_t ly);
+extern void display_draw_line_GB_window( uint8_t ly);
 extern void display_draw_final();
 extern void display_blank();
 
