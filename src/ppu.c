@@ -66,6 +66,17 @@ extern void ppu_init( void) {
 
 extern void ppu_disable( void) {
 
+    #ifdef __FAST // this should never occur
+        if ( ppu.state != PPU_VBLANK) {
+
+            #ifdef __DEBUG
+                fprintf( stderr, "[FATAL] LCDC.7 on while ppu not in VBLANK state. A real gameboy might have serious issue.\n");
+            #endif
+
+            exit( EXIT_FAILURE);
+        }
+    #endif
+
     ppu.draw = 0;
     ppu.enable = 0;
 

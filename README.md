@@ -55,7 +55,7 @@ enfin la touche ENTER représente la touche ENTER de la gameboy et BACKSPACE rep
 
 - [ ] ROM Tetris
   - [x] Jouer à Tetris
-  - [ ]  Encore des bugs à corriger comme des crash de l'émulateur ou un mauvais affichage du niveau...
+  - [ ] La majorité des bugs génant sont corrigé ! quelques bugs subsiste encore.
 - [ ] Vérifier les instructions et finir d'implémenter les instructions
 - [ ] Autres Roms
 - [ ] Gestion de la (vrai) musique

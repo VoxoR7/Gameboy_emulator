@@ -481,20 +481,30 @@ extern void memory_write8( uint16_t addr, uint8_t value) {
                 ppu_disable();
             else
                 ppu_enable();
+
             //if (( value & 0b01000000) == 0)
                 fprintf( stdout, "[WARNING] write   to LCDC.6 not supported\n");
+
             //if (( value & 0b00100000) == 1)
                 fprintf( stdout, "[WARNING] write   to LCDC.5 not supported\n");
+
             //if (( value & 0b00010000) == 1)
                 fprintf( stdout, "[WARNING] write   to LCDC.4 not supported\n");
+
             //if (( value & 0b00001000) == 1)
                 fprintf( stdout, "[WARNING] write   to LCDC.3 not supported\n");
+
             if (( value & 0b00000100) == 0b00000100)
                 fprintf( stdout, "[WARNING] write 1 to LCDC.2 (Sprite size 8x16) not supported\n");
+            /*else
+                fprintf( stdout, "[INFO]    write 0 to LCDC.2 (Sprite size 8x8)\n");*/
+
             //if (( value & 0b00000010) == 1)
                 fprintf( stdout, "[WARNING] write   to LCDC.1 not supported\n");
+
             //if (( value & 0b00000001) == 1)
                 fprintf( stdout, "[WARNING] write   to LCDC.0 not supported\n");
+
         #endif
 
     } else if ( addr == 0xFF41) // STAT - (LCD Status) (R/W)
