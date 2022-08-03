@@ -17,7 +17,11 @@
     #include <time.h>
 #endif
 
-#define TIME_MULT 16 // for debug purpose only
+#ifndef __DEBUG
+    #define __DEBUG
+#endif
+
+#define TIME_MULT 1 // for debug purpose only. Should be 1
 #define SYNC ((16.742005692281935375858027791729 * 1000.0) / TIME_MULT) // us (59.73 Hz)
 
 uint64_t sync;

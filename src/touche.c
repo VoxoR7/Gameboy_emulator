@@ -144,12 +144,12 @@ extern void touche_get( void) {
 		else
 			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00000010);
 
-		if ( touche_appuyer( BACKSPACE))
+		if ( touche_appuyer( ENTER))
 			memory_write8( 0xFF00, memory_special_service_read_joy() & ~0b00001000);
 		else
 			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00001000);
 
-		if ( touche_appuyer( ENTER))
+		if ( touche_appuyer( BACKSPACE))
 			memory_write8( 0xFF00, memory_special_service_read_joy() & ~0b00000100);
 		else
 			memory_write8( 0xFF00, memory_special_service_read_joy() | 0b00000100);

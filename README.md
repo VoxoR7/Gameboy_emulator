@@ -34,7 +34,7 @@ Non testé.
 ## Avant de commencer
 
 Récuperer les roms GameBoy voulu et les placer dans le dossier /rom. 
-L'émulateur se chargera de récuperer tous les fichiers portant l'extension .gb dans le dossier /rom et les sous-dossier, puis les proposera pour être chargé dans l'émulateur.
+L'émulateur se chargera de récuperer tous les fichiers portant l'extension .gb (en minuscule) dans le dossier /rom et les sous-dossier, puis les proposera pour être chargé dans l'émulateur.
 Il est important de ne pas mettre trop de fichier et de dossier dans le dossier /rom.
 
 ## Démarrer l'émulateur
@@ -49,7 +49,7 @@ Une fois les options choisis, appuyer sur ENTER pour émuler le fichier choisis.
 
 Une fois dans le jeu, les touches Z, Q, S et D représente les fléches directionnelles,
 les touches P et L représente respectivement le bouton "A" et "B" d'une gameboy,
-enfin la touche BACKSPACE représente la touche ENTER de la gameboy et ENTER représente la touche SELECT d'une gameboy.
+enfin la touche ENTER représente la touche ENTER de la gameboy et BACKSPACE représente la touche SELECT d'une gameboy.
 
 ## Travaux future
 

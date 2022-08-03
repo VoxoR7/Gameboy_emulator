@@ -10,7 +10,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#define MULT 4
+#define MULT 3
 
 #define WIDTH (160 * MULT)
 #define HEIGHT (144 * MULT)
@@ -193,8 +193,6 @@ extern void display_try( void) {
             return;
         }
     #endif
-
-    SDL_RenderClear( renderer2nd);
 
     for ( uint16_t j = 0; j < TILE_TO_DRAW; j++) {
 
@@ -426,15 +424,7 @@ extern void display_try( void) {
     }
 
     SDL_RenderPresent( renderer2nd);
-}
-
-extern void display_clear( void) {
-
-    for ( uint8_t i = 0; i < 160; i++)
-        for ( uint8_t j = 0; j < 144; j++)
-            *((uint32_t *) ((uint8_t *) surface_line->pixels + j * surface_line->pitch + i * surface_line->format->BytesPerPixel)) = 0x00000000;
-
-    SDL_RenderClear( renderer);
+    SDL_RenderClear( renderer2nd);
 }
 
 extern void display_draw_line( uint8_t ly) {
@@ -907,260 +897,28 @@ extern void display_draw_line( uint8_t ly) {
             }
     }
 
-    if ( ly == 143) {
+    return;
+}
 
-        SDL_Texture *texture = SDL_CreateTextureFromSurface( renderer, surface_line);
-        SDL_RenderCopy( renderer, texture, NULL, NULL);
+extern void display_draw_final() {
 
-        SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255);
-        SDL_RenderPresent( renderer);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface( renderer, surface_line);
+    SDL_RenderCopy( renderer, texture, NULL, NULL);
 
-        SDL_DestroyTexture( texture);
-    }
+    SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255);
+    SDL_RenderPresent( renderer);
+    SDL_RenderClear( renderer);
+
+    SDL_DestroyTexture( texture);
 
     return;
 }
 
-extern void display_wait( void) {
+extern void display_blank() {
 
-    SDL_Delay( 0);
-}
-
-extern void display_tile( uint8_t tile) {
-
-    SDL_Surface *surf = SDL_CreateRGBSurface( 0, 8, 8, 32, 0, 0, 0, 0);
-
-    for ( uint8_t i = 0; i < 8; i++) {
-
-        switch ( ((memory_read8( (0x8001 + tile * 16) + i * 2) & 0b10000000) >> 7) * 2 + ((memory_read8( (0x8000 + tile * 16) + i * 2) & 0b10000000) >> 7) ) {
-            case 0:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 0 * surf->format->BytesPerPixel)) = 0xFFFFFFFF;
-                break;
-            case 1:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 0 * surf->format->BytesPerPixel)) = 0xAAAAAAAA;
-                break;
-            case 2:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 0 * surf->format->BytesPerPixel)) = 0x55555555;
-                break;
-            case 3:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 0 * surf->format->BytesPerPixel)) = 0x00000000;
-                break;
-            #ifdef __DEBUG
-            default:
-
-                fprintf( stdout, "[FATAL] %s %d\n", __FILE__, __LINE__);
-                exit( EXIT_FAILURE);
-            #endif
-        }
-
-        switch ( ((memory_read8( (0x8001 + tile * 16) + i * 2) & 0b01000000) >> 6) * 2 + ((memory_read8( (0x8000 + tile * 16) + i * 2) & 0b01000000) >> 6) ) {
-            case 0:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 1 * surf->format->BytesPerPixel)) = 0xFFFFFFFF;
-                break;
-            case 1:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 1 * surf->format->BytesPerPixel)) = 0xAAAAAAAA;
-                break;
-            case 2:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 1 * surf->format->BytesPerPixel)) = 0x55555555;
-                break;
-            case 3:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 1 * surf->format->BytesPerPixel)) = 0x00000000;
-                break;
-            #ifdef __DEBUG
-            default:
-
-                fprintf( stdout, "[FATAL] %s %d\n", __FILE__, __LINE__);
-                exit( EXIT_FAILURE);
-            #endif
-        }
-
-        switch ( ((memory_read8( (0x8001 + tile * 16) + i * 2) & 0b00100000) >> 5) * 2 + ((memory_read8( (0x8000 + tile * 16) + i * 2) & 0b00100000) >> 5) ) {
-            case 0:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 2 * surf->format->BytesPerPixel)) = 0xFFFFFFFF;
-                break;
-            case 1:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 2 * surf->format->BytesPerPixel)) = 0xAAAAAAAA;
-                break;
-            case 2:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 2 * surf->format->BytesPerPixel)) = 0x55555555;
-                break;
-            case 3:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 2 * surf->format->BytesPerPixel)) = 0x00000000;
-                break;
-            #ifdef __DEBUG
-            default:
-
-                fprintf( stdout, "[FATAL] %s %d\n", __FILE__, __LINE__);
-                exit( EXIT_FAILURE);
-            #endif
-        }
-
-        switch ( ((memory_read8( (0x8001 + tile * 16) + i * 2) & 0b00010000) >> 4) * 2 + ((memory_read8( (0x8000 + tile * 16) + i * 2) & 0b00010000) >> 4) ) {
-            case 0:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 3 * surf->format->BytesPerPixel)) = 0xFFFFFFFF;
-                break;
-            case 1:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 3 * surf->format->BytesPerPixel)) = 0xAAAAAAAA;
-                break;
-            case 2:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 3 * surf->format->BytesPerPixel)) = 0x55555555;
-                break;
-            case 3:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 3 * surf->format->BytesPerPixel)) = 0x00000000;
-                break;
-            #ifdef __DEBUG
-            default:
-
-                fprintf( stdout, "[FATAL] %s %d\n", __FILE__, __LINE__);
-                exit( EXIT_FAILURE);
-            #endif
-        }
-
-        switch ( ((memory_read8( (0x8001 + tile * 16) + i * 2) & 0b00001000) >> 3) * 2 + ((memory_read8( (0x8000 + tile * 16) + i * 2) & 0b00001000) >> 3) ) {
-            case 0:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 4 * surf->format->BytesPerPixel)) = 0xFFFFFFFF;
-                break;
-            case 1:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 4 * surf->format->BytesPerPixel)) = 0xAAAAAAAA;
-                break;
-            case 2:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 4 * surf->format->BytesPerPixel)) = 0x55555555;
-                break;
-            case 3:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 4 * surf->format->BytesPerPixel)) = 0x00000000;
-                break;
-            #ifdef __DEBUG
-            default:
-
-                fprintf( stdout, "[FATAL] %s %d\n", __FILE__, __LINE__);
-                exit( EXIT_FAILURE);
-            #endif
-        }
-
-        switch ( ((memory_read8( (0x8001 + tile * 16) + i * 2) & 0b00000100) >> 2) * 2 + ((memory_read8( (0x8000 + tile * 16) + i * 2) & 0b00000100) >> 2) ) {
-            case 0:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 5 * surf->format->BytesPerPixel)) = 0xFFFFFFFF;
-                break;
-            case 1:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 5 * surf->format->BytesPerPixel)) = 0xAAAAAAAA;
-                break;
-            case 2:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 5 * surf->format->BytesPerPixel)) = 0x55555555;
-                break;
-            case 3:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 5 * surf->format->BytesPerPixel)) = 0x00000000;
-                break;
-            #ifdef __DEBUG
-            default:
-
-                fprintf( stdout, "[FATAL] %s %d\n", __FILE__, __LINE__);
-                exit( EXIT_FAILURE);
-            #endif
-        }
-
-        switch ( ((memory_read8( (0x8001 + tile * 16) + i * 2) & 0b00000010) >> 1) * 2 + ((memory_read8( (0x8000 + tile * 16) + i * 2) & 0b00000010) >> 1) ) {
-            case 0:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 6 * surf->format->BytesPerPixel)) = 0xFFFFFFFF;
-                break;
-            case 1:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 6 * surf->format->BytesPerPixel)) = 0xAAAAAAAA;
-                break;
-            case 2:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 6 * surf->format->BytesPerPixel)) = 0x55555555;
-                break;
-            case 3:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 6 * surf->format->BytesPerPixel)) = 0x00000000;
-                break;
-            #ifdef __DEBUG
-            default:
-
-                fprintf( stdout, "[FATAL] %s %d\n", __FILE__, __LINE__);
-                exit( EXIT_FAILURE);
-            #endif
-        }
-
-        switch ( (memory_read8( (0x8001 + tile * 16) + i * 2) & 0b00000001) * 2 + (memory_read8( (0x8000 + tile * 16) + i * 2) & 0b00000001)) {
-            case 0:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 7 * surf->format->BytesPerPixel)) = 0xFFFFFFFF;
-                break;
-            case 1:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 7 * surf->format->BytesPerPixel)) = 0xAAAAAAAA;
-                break;
-            case 2:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 7 * surf->format->BytesPerPixel)) = 0x55555555;
-                break;
-            case 3:
-
-                *((uint32_t *) ((uint8_t *) surf->pixels + i * surf->pitch + 7 * surf->format->BytesPerPixel)) = 0x00000000;
-                break;
-            #ifdef __DEBUG
-            default:
-
-                fprintf( stdout, "[FATAL] %s %d\n", __FILE__, __LINE__);
-                exit( EXIT_FAILURE);
-            #endif
-        }
-    }
-
-    SDL_Rect rdst;
-
-    rdst.x = 0;
-    rdst.y = 0;
-    rdst.w = 32;
-    rdst.h = 32;
-
-    SDL_Texture *texture = SDL_CreateTextureFromSurface( renderer, surf);
-    SDL_FreeSurface( surf);
-    SDL_RenderCopy( renderer, texture, NULL, &rdst);
-
-    SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255);
-    //SDL_RenderClear( renderer);
+    SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255);
     SDL_RenderPresent( renderer);
-
-    //SDL_Delay( 1);
-
-    SDL_DestroyTexture( texture);
-}
-
-extern void display_draw2nd( void) {
-
-    SDL_SetRenderDrawColor( renderer2nd, 0, 0, 0, 255);
-    SDL_RenderClear( renderer2nd);
-
-    SDL_SetRenderDrawColor( renderer2nd, 255, 0, 0, 255);
-    SDL_RenderDrawPoint( renderer2nd, 0, 0);
-    SDL_RenderPresent( renderer2nd);
+    SDL_RenderClear( renderer);
 }
 
 extern void display_draw_menu( const char *rom_selected, const uint8_t audio_level) {
@@ -1181,7 +939,6 @@ extern void display_draw_menu( const char *rom_selected, const uint8_t audio_lev
     drect.w = WIDTH / 2;
     drect.h = HEIGHT / 4;
 
-    SDL_RenderClear( renderer);
     SDL_RenderCopy(renderer, t_rom, NULL, &drect);
 
     drect.x = WIDTH / 8;
@@ -1190,25 +947,10 @@ extern void display_draw_menu( const char *rom_selected, const uint8_t audio_lev
     drect.h = HEIGHT / 4;
     SDL_RenderCopy(renderer, t_audio, NULL, &drect);
     SDL_RenderPresent( renderer);
+    SDL_RenderClear( renderer);
 
     SDL_FreeSurface( s_rom);
     SDL_DestroyTexture( t_rom);
     SDL_FreeSurface( s_audio);
     SDL_DestroyTexture( t_audio);
-}
-
-extern void display_draw( void) {
-
-    /*SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255);
-    SDL_RenderClear( renderer);
-
-    SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255);
-    SDL_RenderDrawPoint( renderer, 0, 0);
-    SDL_RenderDrawPoint( renderer, 1, 0);
-    SDL_RenderDrawPoint( renderer, 0, 1);
-    SDL_RenderDrawPoint( renderer, 1, 1);
-    SDL_RenderPresent( renderer);
-
-    SDL_Delay( 1);*/
-    return;
 }

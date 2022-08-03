@@ -1,29 +1,26 @@
-# E:\Documents\Code\C\mingw64\bin\mingw32-make.exe
+# D:\Documents\Informatique\Code\dev\mingw64\bin\mingw32-make.exe
 
 include Makefile.conf
 
-strip = E:\Documents\Code\C\mingw64\bin\strip.exe
+strip = D:\Documents\Informatique\Code\dev\winlibs-x86_64-posix-seh-gcc-12.1.0-mingw-w64ucrt-10.0.0-r2\mingw64\bin\strip.exe
 
-CC = E:\Documents\Code\C\mingw64\bin\gcc.exe
+CC = D:\Documents\Informatique\Code\dev\mingw64\bin\gcc.exe
 
-SDL_LIB = E:\Documents\Code\C\SDL2-2.0.14\x86_64-w64-mingw32\lib
-SDL_INC = E:\Documents\Code\C\SDL2-2.0.14\x86_64-w64-mingw32\include
+SDL_LIB = D:\Documents\Informatique\Code\dev\SDL2-2.0.22\x86_64-w64-mingw32\lib
+SDL_INC = D:\Documents\Informatique\Code\dev\SDL2-2.0.22\x86_64-w64-mingw32\include
 
-LIB_SDL_IMG = E:\Documents\Code\C\SDL2_image-2.0.5\x86_64-w64-mingw32\lib
-INC_SDL_IMG = E:\Documents\Code\C\SDL2_image-2.0.5\x86_64-w64-mingw32\include
+SDL_MIX_LIB = D:\Documents\Informatique\Code\dev\SDL2_mixer-2.0.4\x86_64-w64-mingw32\lib
+SDL_MIX_INC = D:\Documents\Informatique\Code\dev\SDL2_mixer-2.0.4\x86_64-w64-mingw32\include
 
-SDL_MIX_INC = E:\Documents\Code\C\SDL2_mixer\SDL2_mixer-2.0.4\x86_64-w64-mingw32\include
-SDL_MIX_LIB = E:\Documents\Code\C\SDL2_mixer\SDL2_mixer-2.0.4\x86_64-w64-mingw32\lib
-
-SDL_TTF_INC = E:\Documents\Code\C\SDL2_ttf\SDL2_ttf-2.0.18\x86_64-w64-mingw32\include
-SDL_TTF_LIB = E:\Documents\Code\C\SDL2_ttf\SDL2_ttf-2.0.18\x86_64-w64-mingw32\lib
+SDL_TTF_LIB = D:\Documents\Informatique\Code\dev\SDL2_ttf-2.0.18\x86_64-w64-mingw32\lib
+SDL_TTF_INC = D:\Documents\Informatique\Code\dev\SDL2_ttf-2.0.18\x86_64-w64-mingw32\include
 
 OBJ = obj
 SRC = src
 INC = inc
 BIN = bin
 
-LD_FLAGS = -lmingw32 -lSDL2main -lsdl2 -lSDL2_mixer -lSDL2_ttf # '-Wl,-rpath,$$ORIGIN/so' --coverage
+LD_FLAGS = -lmingw32 -lSDL2main -lsdl2 -lSDL2_mixer -lSDL2_ttf
 
 PROG_NAME = VGB_emulator.exe
 

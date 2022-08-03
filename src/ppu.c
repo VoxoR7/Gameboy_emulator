@@ -30,6 +30,12 @@ struct ppu {
     uint8_t state;
     uint8_t ly;
     uint16_t cycles;
+    uint8_t draw; // In case of LCDC.7 off, next time it is turning on the current frame should not being displayed
+    uint8_t enable;
+
+    uint8_t sstate; // used to save ppu context when LCDC.7 is turn off
+    uint8_t sly;
+    uint16_t scycles;
 };
 
 struct ppu ppu;
@@ -44,6 +50,8 @@ extern void ppu_reset( void) {
     ppu.state = PPU_OAM;
     ppu.ly = 0;
     ppu.cycles = 0;
+    ppu.draw = 1;
+    ppu.enable = 1;
 
     return;
 }
@@ -56,7 +64,31 @@ extern void ppu_init( void) {
     return;
 }
 
+extern void ppu_disable( void) {
+
+    ppu.draw = 0;
+    ppu.enable = 0;
+
+    ppu.sstate = ppu.state; // save ppu context
+    ppu.sly = ppu.ly;
+    ppu.scycles = ppu.cycles;
+
+    display_blank();
+}
+
+extern void ppu_enable( void) {
+
+    ppu.state = ppu.sstate; // restore ppu context
+    ppu.ly = ppu.sly;
+    ppu.cycles = ppu.scycles;
+
+    ppu.enable = 1;
+}
+
 void vblank( void) {
+
+    if ( !(ppu.enable))
+        return;
 
     interrupt_request( INTERRUPT_BIT_VBLANK);
 
@@ -67,6 +99,9 @@ void vblank( void) {
 
 void hblank( void) {
 
+    if ( !(ppu.enable))
+        return;
+
     if ( memory_read8( 0xFF41) & PPU_STAT_HBLANK)
         interrupt_request( INTERRUPT_BIT_LCDSTAT);
 
@@ -74,6 +109,9 @@ void hblank( void) {
 }
 
 void oam( void) {
+
+    if ( !(ppu.enable))
+        return;
 
     if ( memory_read8( 0xFF41) & PPU_STAT_OAM)
         interrupt_request( INTERRUPT_BIT_LCDSTAT);
@@ -84,6 +122,9 @@ void oam( void) {
 void increase_ly( struct ppu *ppu) {
 
     ppu->ly++;
+
+    if ( !(ppu->enable))
+        return;
 
     memory_special_service_ly( ppu->ly);
 
@@ -140,9 +181,21 @@ extern void ppu_run( uint64_t cycles) {
 
                     ppu.state = PPU_VBLANK;
                     vblank();
+
+                    if ( !(ppu.enable))
+                        return;
+
+                    if ( ppu.draw)
+                        display_draw_final();
+                    else
+                        ppu.draw = 1;
                 } else {
 
                     ppu.state = PPU_OAM;
+
+                    if ( !(ppu.enable))
+                        return;
+                    
                     display_draw_line( ppu.ly);
                 }
             }
@@ -168,7 +221,9 @@ extern void ppu_run( uint64_t cycles) {
                 if ( touche_appuyer( QUITTER) || touche_appuyer( ESCAPE))
                     exit( EXIT_SUCCESS);
 
-                display_clear();
+                if ( !(ppu.enable))
+                    return;
+
                 display_draw_line( ppu.ly);
 
                 #ifdef __DEBUG

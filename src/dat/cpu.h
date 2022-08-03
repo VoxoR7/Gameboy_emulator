@@ -983,6 +983,22 @@ switch ( opcode) {
         #endif
 
         break;
+    case 51: // 0x33 SP++
+        // reviewed OK
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0x33 SP++ REVIEWED\n");
+        #endif
+
+        (registers.sp)++;
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : sp 0x%04x (%"PRIu16")\n", registers.sp, registers.sp);
+        #endif
+
+        break;
     case 52: // 0x34 *(HL)++
 
         #ifdef __STEP
@@ -1162,6 +1178,21 @@ switch ( opcode) {
         #endif
 
         break;
+    case 68: // 0x44 B = H
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0x44 B = H\n");
+        #endif
+
+        registers.b = registers.h;
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : b = 0x%02x (%"PRIu8")\n", registers.b, registers.b);
+        #endif
+
+        break;
     case 70: // 0x46 B = *(HL)
 
         #ifdef __STEP
@@ -1189,6 +1220,21 @@ switch ( opcode) {
         #ifdef __STEP
             if ( verbose)
                 fprintf( stderr, "[INFO] : b = 0x%02x (%"PRIu8")\n", registers.b, registers.b);
+        #endif
+
+        break;
+    case 77: // 0x4D C = L
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0x4D C = L\n");
+        #endif
+
+        registers.c = registers.l;
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : c = 0x%02x (%"PRIu8")\n", registers.c, registers.c);
         #endif
 
         break;
@@ -1505,6 +1551,16 @@ switch ( opcode) {
             if ( verbose)
                 fprintf( stderr, "[INFO] : e = 0x%02x; hl = 0x%02x\n", registers.e, registers.hl);
         #endif
+
+        break;
+    case 118: // 0x76 HALT
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0x76 HALT\n");
+        #endif
+
+        (registers.pc)--;
 
         break;
     case 119: // 0x77 *(HL) = A
@@ -1852,12 +1908,36 @@ switch ( opcode) {
 
         if ( (((registers.a & 0x0F) - (registers.c & 0x0F)) & 0x10) == 0x10 )
             registers.f |= FLAGS_H;
-        else
-            registers.f &= ~FLAGS_H;
 
         registers.a -= registers.c;
 
         if ( registers.a > registers.c)
+            registers.f |= FLAGS_C;
+
+        if ( !(registers.a))
+            registers.f |= FLAGS_Z;
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : a = 0x%02x (%"PRIu8")\n", registers.a, registers.a);
+        #endif
+
+        break;
+    case 147: // 0x93 A -= E
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0x93 A -= E\n");
+        #endif
+
+        registers.f = FLAGS_N;
+
+        if ( (((registers.a & 0x0F) - (registers.e & 0x0F)) & 0x10) == 0x10 )
+            registers.f |= FLAGS_H;
+
+        registers.a -= registers.e;
+
+        if ( registers.a > registers.e)
             registers.f |= FLAGS_C;
 
         if ( !(registers.a))
@@ -2131,6 +2211,26 @@ switch ( opcode) {
         #endif
 
         registers.a |= registers.d;
+
+        if ( registers.a)
+            registers.f = 0;
+        else
+            registers.f = FLAGS_Z;
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : a 0x%02x (%"PRIu8")\n", registers.a, registers.a);
+        #endif
+
+        break;
+    case 179: // 0xB3 A = A | E
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0xB3 A = A | E\n");
+        #endif
+
+        registers.a |= registers.e;
 
         if ( registers.a)
             registers.f = 0;
@@ -2683,6 +2783,32 @@ switch ( opcode) {
                 #endif
 
                 break;
+            case 33: // 0x21 SHIFT C LEFT PRESERVING SIGN
+
+                #ifdef __STEP
+                    if ( verbose)
+                        fprintf( stdout, "[INFO] {0x21 SHIFT C LEFT PRESERVING SIGN}\n");
+                #endif
+
+                if ( registers.c & 0b01000000)
+                    registers.f = FLAGS_C;
+                else
+                    registers.f = 0;
+            
+                registers.c |= (registers.a & 0b10000000) >> 1;
+                registers.c = registers.c << 1;
+
+                if ( !registers.c)
+                    registers.f |= FLAGS_Z;
+
+                emul_time += 2;
+
+                #ifdef __STEP
+                    if ( verbose)
+                        fprintf( stdout, "\tregisters.c = %d (0x%02x)\n", registers.c, registers.c);
+                #endif
+
+                break;
             case 39: // 0x27 SHIFT A LEFT PRESERVING SIGN
 
                 #ifdef __STEP
@@ -3163,6 +3289,48 @@ switch ( opcode) {
                 #endif
 
                 break;
+            case 123: // 0x7B : TEST BIT 7 OF E
+
+                #ifdef __STEP
+                    if ( verbose)
+                        fprintf( stdout, "[INFO] {0x7B : TEST BIT 7 OF E}\n");
+                #endif
+            
+                if ( registers.e & 0b10000000)
+                    registers.f = FLAGS_N | FLAGS_H;
+                else
+                    registers.f = FLAGS_Z | FLAGS_N | FLAGS_H;
+
+                emul_time += 2;
+
+                #ifdef __STEP
+                    if ( verbose)
+                        fprintf( stdout, "\tbit 7 of e = %"PRIu8"\n", registers.e & 0b10000000);
+                #endif
+
+                break;
+            case 124: // 0x7C : TEST BIT 7 OF H
+
+                #ifdef __STEP
+                    if ( verbose)
+                        fprintf( stdout, "[INFO] {0x7C : TEST BIT 7 OF H}\n");
+                #endif
+
+                registers.f &= ~(FLAGS_N);
+            
+                if ( registers.h & 0b10000000)
+                    registers.f = FLAGS_H;
+                else
+                    registers.f = FLAGS_Z | FLAGS_H;
+
+                emul_time += 2;
+
+                #ifdef __STEP
+                    if ( verbose)
+                        fprintf( stdout, "\tbit 7 of h = %"PRIu8"\n", registers.h & 0b10000000);
+                #endif
+
+                break;
             case 126: // 0x7E : TEST BIT 7 OF *(HL)
 
                 #ifdef __STEP
@@ -3571,6 +3739,32 @@ switch ( opcode) {
             if ( verbose)
                 fprintf( stderr, "[INFO] : a 0x%02x (%"PRIu8"); immmediate : 0x%02x\n", registers.a, registers.a, op8);
         #endif
+
+        break;
+    case 232: // 0xE8 SP += XX
+
+        #ifdef __STEP
+            if ( verbose)
+                fprintf( stderr, "[INFO] : 0xE8 SP += (signed)XX\n");
+        #endif
+
+        if ( (int8_t)(op8) > 0) {
+
+            if ( registers.sp += (int8_t)(op8) < registers.sp)
+                registers.f = FLAGS_C;
+            else
+                registers.f = 0;
+        } else {
+
+            if ( registers.sp += (int8_t)(op8) > registers.sp)
+                registers.f = FLAGS_C;
+            else
+                registers.f = 0;
+        }
+
+        registers.sp += (int8_t)(op8);
+
+        // TODO FLAGS_H + REVIEW FLAGS_C
 
         break;
     case 233: // 0xE9 JMP *(HL)

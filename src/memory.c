@@ -8,6 +8,7 @@
 
 #include "cpu.h"
 #include "touche.h"
+#include "ppu.h"
 
 #define REALITY 0
 #define MEMORY_SIZE 0x10000
@@ -472,9 +473,31 @@ extern void memory_write8( uint16_t addr, uint8_t value) {
     else if ( addr == 0xFF26) // NR52 - Sound on/off (R/W)
         memory[addr] = value;
 
-    else if ( addr == 0xFF40) // LCDC - (LCD Control) (R/W)
+    else if ( addr == 0xFF40) { // LCDC - (LCD Control) (R/W)
         memory[addr] = value;
-    else if ( addr == 0xFF41) // STAT - (LCD Status) (R/W)
+
+        #ifdef __DEBUG
+            if (( value & 0b10000000) == 0)
+                ppu_disable();
+            else
+                ppu_enable();
+            //if (( value & 0b01000000) == 0)
+                fprintf( stdout, "[WARNING] write   to LCDC.6 not supported\n");
+            //if (( value & 0b00100000) == 1)
+                fprintf( stdout, "[WARNING] write   to LCDC.5 not supported\n");
+            //if (( value & 0b00010000) == 1)
+                fprintf( stdout, "[WARNING] write   to LCDC.4 not supported\n");
+            //if (( value & 0b00001000) == 1)
+                fprintf( stdout, "[WARNING] write   to LCDC.3 not supported\n");
+            if (( value & 0b00000100) == 0b00000100)
+                fprintf( stdout, "[WARNING] write 1 to LCDC.2 (Sprite size 8x16) not supported\n");
+            //if (( value & 0b00000010) == 1)
+                fprintf( stdout, "[WARNING] write   to LCDC.1 not supported\n");
+            //if (( value & 0b00000001) == 1)
+                fprintf( stdout, "[WARNING] write   to LCDC.0 not supported\n");
+        #endif
+
+    } else if ( addr == 0xFF41) // STAT - (LCD Status) (R/W)
         memory[addr] = value;
     else if ( addr == 0xFF42) // SCY - Scroll Y (R/W)
         memory[addr] = value;
@@ -644,13 +667,16 @@ extern uint8_t memory_read8( uint16_t addr) {
 
     return memory[addr];
 
-    #endif// __FAST
+    #endif // __FAST
     return 0;
 }
 
 extern void memory_write16( uint16_t addr, uint16_t value) {
 
     if ( addr >= 0xC000 && addr < 0xDFFF) { // 4KB Work RAM Bank 0 (WRAM)
+        memory[addr + 1] = (uint8_t)(value >> 8);
+        memory[addr] = (uint8_t)(value & 0xFF);
+    } else if ( addr >= 0xFF80 && addr < 0xFFFF) { // High RAM (HRAM)
         memory[addr + 1] = (uint8_t)(value >> 8);
         memory[addr] = (uint8_t)(value & 0xFF);
     }
@@ -671,6 +697,8 @@ extern uint16_t memory_read16( uint16_t addr) {
     else if ( addr >= 0x4000 && addr < 0x7FFF && emul_current_rom_bank == 1) // 8KB ROM Bank 01
         return (uint16_t)(memory[addr] + (memory[addr + 1] << 8));
     else if ( addr >= 0xC000 && addr < 0xDFFF)
+        return (uint16_t)(memory[addr] + (memory[addr + 1] << 8));
+    else if ( addr >= 0xFF80 && addr < 0xFFFF) // High RAM (HRAM)
         return (uint16_t)(memory[addr] + (memory[addr + 1] << 8));
 
     #ifdef __DEBUG
