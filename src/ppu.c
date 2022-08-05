@@ -34,6 +34,7 @@ struct ppu {
     uint8_t enable;
 
     uint8_t draw_BG_window;
+    uint8_t draw_sprite;
 
     uint8_t sstate; // used to save ppu context when LCDC.7 is turn off
     uint8_t sly;
@@ -55,6 +56,7 @@ extern void ppu_reset( void) {
     ppu.draw = 1;
     ppu.enable = 1;
     ppu.draw_BG_window = 1;
+    ppu.draw_sprite = 1;
 
     return;
 }
@@ -69,11 +71,11 @@ extern void ppu_init( void) {
 
 extern void ppu_disable( void) {
 
-    #ifdef __FAST // this should never occur
+    #ifdef __FAST // this should never occur, so we can disable the check
         if ( ppu.state != PPU_VBLANK) {
 
             #ifdef __DEBUG
-                fprintf( stderr, "[FATAL] LCDC.7 on while ppu not in VBLANK state. A real gameboy might have serious issue.\n");
+                fprintf( stderr, "[FATAL] LCDC.7 turned on while ppu not in VBLANK state. A real gameboy might have serious issue.\n");
             #endif
 
             exit( EXIT_FAILURE);
@@ -103,13 +105,25 @@ extern void ppu_enable( void) {
 
 extern void ppu_disable_BG_window( void) {
 
-    ppu.draw_BG_window = 1;
+    ppu.draw_BG_window = 0;
     return;
 }
 
 extern void ppu_enable_BG_window( void) {
 
     ppu.draw_BG_window = 1;
+    return;
+}
+
+extern void ppu_disable_sprite( void) {
+
+    ppu.draw_sprite = 0;
+    return;
+}
+
+extern void ppu_enable_sprite( void) {
+
+    ppu.draw_sprite = 1;
     return;
 }
 
@@ -282,7 +296,9 @@ extern void ppu_run( uint64_t cycles) {
                     if ( ppu.draw_BG_window)
                         display_draw_line_GB_window( ppu.ly);
 
-                    display_draw_line_sprite( ppu.ly);
+                    if ( ppu.draw_sprite)
+                        display_draw_line_sprite( ppu.ly);
+
                     vblank();
                 }
             }
