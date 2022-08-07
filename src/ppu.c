@@ -33,8 +33,6 @@ struct ppu {
     uint8_t draw; // In case of LCDC.7 off, next time it is turning on the current frame should not being displayed
     uint8_t enable;
 
-    uint8_t draw_BG_window;
-
     uint8_t sstate; // used to save ppu context when LCDC.7 is turn off
     uint8_t sly;
     uint16_t scycles;
@@ -54,7 +52,6 @@ extern void ppu_reset( void) {
     ppu.cycles = 0;
     ppu.draw = 1;
     ppu.enable = 1;
-    ppu.draw_BG_window = 1;
 
     return;
 }
@@ -88,7 +85,6 @@ extern void ppu_disable( void) {
     ppu.scycles = ppu.cycles;
 
     display_blank();
-    return;
 }
 
 extern void ppu_enable( void) {
@@ -98,32 +94,24 @@ extern void ppu_enable( void) {
     ppu.cycles = ppu.scycles;
 
     ppu.enable = 1;
-    return;
-}
-
-extern void ppu_disable_BG_window( void) {
-
-    ppu.draw_BG_window = 1;
-    return;
-}
-
-extern void ppu_enable_BG_window( void) {
-
-    ppu.draw_BG_window = 1;
-    return;
 }
 
 void vblank( void) {
+
+    if ( !(ppu.enable))
+        return;
 
     interrupt_request( INTERRUPT_BIT_VBLANK);
 
     if ( memory_read8( 0xFF41) & PPU_STAT_VBLANK)
         interrupt_request( INTERRUPT_BIT_LCDSTAT);
-
     return;
 }
 
 void hblank( void) {
+
+    if ( !(ppu.enable))
+        return;
 
     if ( memory_read8( 0xFF41) & PPU_STAT_HBLANK)
         interrupt_request( INTERRUPT_BIT_LCDSTAT);
@@ -132,6 +120,9 @@ void hblank( void) {
 }
 
 void oam( void) {
+
+    if ( !(ppu.enable))
+        return;
 
     if ( memory_read8( 0xFF41) & PPU_STAT_OAM)
         interrupt_request( INTERRUPT_BIT_LCDSTAT);
@@ -158,73 +149,6 @@ void increase_ly( struct ppu *ppu) {
         memory_write8( 0XFF41, memory_read8( 0xFF41) & ~0b00000100);
 }
 
-static void ppu_run_not_enable( void) {
-
-    switch ( ppu.state) {
-
-        case PPU_OAM:
-
-            if ( ppu.cycles >= 80) {
-
-                ppu.cycles -= 80;
-                ppu.state = PPU_PT;
-            }
-
-            break;
-        case PPU_PT:
-
-            if ( ppu.cycles >= 172) {
-
-                ppu.cycles -= 172;
-                ppu.state = PPU_HBLANK;
-            }
-
-            break;
-        case PPU_HBLANK:
-
-            if ( ppu.cycles >= 204 /*42*/) {
-
-                ppu.cycles -= 204 /*42*/;
-                increase_ly( &ppu);
-
-                if ( ppu.ly == 144)
-                    ppu.state = PPU_VBLANK;
-                else
-                    ppu.state = PPU_OAM;
-            }
-
-            break;
-        case PPU_VBLANK:
-
-            if ( ppu.cycles < 456 /*20*/)
-                return;
-
-            ppu.cycles -= 456 /*20*/;
-    
-            increase_ly( &ppu);
-
-            if ( ppu.ly >= 153) {
-
-                ppu.ly = 0;
-                ppu.state = PPU_OAM;
-                real_time_wait();
-
-                touche_get();
-
-                if ( touche_appuyer( QUITTER) || touche_appuyer( ESCAPE))
-                    exit( EXIT_SUCCESS);
-            }
-
-            break;
-        #ifdef __DEBUG
-        default:
-
-            fprintf( stdout, "[FATAL] : ppu not in the good state !\n");
-            exit( EXIT_FAILURE);
-        #endif
-    }
-}
-
 extern void ppu_run( uint64_t cycles) {
 
     static uint64_t last_cycles = 0;
@@ -235,9 +159,6 @@ extern void ppu_run( uint64_t cycles) {
         return;
 
     ppu.cycles += do_cycles;
-
-    if ( !(ppu.enable))
-        ppu_run_not_enable();
 
     switch ( ppu.state) {
 
@@ -270,6 +191,10 @@ extern void ppu_run( uint64_t cycles) {
                 if ( ppu.ly == 144) {
 
                     ppu.state = PPU_VBLANK;
+                    vblank();
+
+                    if ( !(ppu.enable))
+                        return;
 
                     if ( ppu.draw)
                         display_draw_final();
@@ -278,12 +203,11 @@ extern void ppu_run( uint64_t cycles) {
                 } else {
 
                     ppu.state = PPU_OAM;
-                    
-                    if ( ppu.draw_BG_window)
-                        display_draw_line_GB_window( ppu.ly);
 
-                    display_draw_line_sprite( ppu.ly);
-                    vblank();
+                    if ( !(ppu.enable))
+                        return;
+                    
+                    display_draw_line( ppu.ly);
                 }
             }
 
@@ -308,10 +232,10 @@ extern void ppu_run( uint64_t cycles) {
                 if ( touche_appuyer( QUITTER) || touche_appuyer( ESCAPE))
                     exit( EXIT_SUCCESS);
 
-                if ( ppu.draw_BG_window)
-                    display_draw_line_GB_window( ppu.ly);
+                if ( !(ppu.enable))
+                    return;
 
-                display_draw_line_sprite( ppu.ly);
+                display_draw_line( ppu.ly);
 
                 #ifdef __DEBUG
                     display_try();

@@ -477,45 +477,33 @@ extern void memory_write8( uint16_t addr, uint8_t value) {
         memory[addr] = value;
 
         #ifdef __DEBUG
-            if (( value & 0b10000000) == 0) // bit 7
+            if (( value & 0b10000000) == 0)
                 ppu_disable();
             else
                 ppu_enable();
 
-            if (( value & 0b01000000) == 0b01000000)
-                fprintf( stdout, "[WARNING] write 1 to LCDC.6 not supported\n");
-            else
-                fprintf( stdout, "[WARNING] write 0 to LCDC.6 not supported\n");
+            //if (( value & 0b01000000) == 0)
+                fprintf( stdout, "[WARNING] write   to LCDC.6 not supported\n");
 
-            if (( value & 0b00100000) == 0b00100000)
-                fprintf( stdout, "[WARNING] write 1 to LCDC.5 not supported\n");
-            else
-                fprintf( stdout, "[WARNING] write 0 to LCDC.5 not supported\n");
+            //if (( value & 0b00100000) == 1)
+                fprintf( stdout, "[WARNING] write   to LCDC.5 not supported\n");
 
-            if (( value & 0b00010000) == 0b00010000)
-                fprintf( stdout, "[WARNING] write 1 to LCDC.4 not supported\n");
-            else
-                fprintf( stdout, "[WARNING] write 0 to LCDC.4 not supported\n");
+            //if (( value & 0b00010000) == 1)
+                fprintf( stdout, "[WARNING] write   to LCDC.4 not supported\n");
 
-            if (( value & 0b00001000) == 0b00001000)
-                fprintf( stdout, "[WARNING] write 1 to LCDC.3 not supported\n");
-            else
-                fprintf( stdout, "[WARNING] write 0 to LCDC.3 not supported\n");
+            //if (( value & 0b00001000) == 1)
+                fprintf( stdout, "[WARNING] write   to LCDC.3 not supported\n");
 
             if (( value & 0b00000100) == 0b00000100)
                 fprintf( stdout, "[WARNING] write 1 to LCDC.2 (Sprite size 8x16) not supported\n");
             /*else
                 fprintf( stdout, "[INFO]    write 0 to LCDC.2 (Sprite size 8x8)\n");*/
 
-            if (( value & 0b00000010) == 0b00000010)
-                fprintf( stdout, "[WARNING] write 1 to LCDC.1 not supported\n");
-            else
-                fprintf( stdout, "[WARNING] write 0 to LCDC.1 not supported\n");
+            //if (( value & 0b00000010) == 1)
+                fprintf( stdout, "[WARNING] write   to LCDC.1 not supported\n");
 
-            if (( value & 0b00000001) == 0)
-                ppu_disable_BG_window();
-            else
-                ppu_enable_BG_window();
+            //if (( value & 0b00000001) == 1)
+                fprintf( stdout, "[WARNING] write   to LCDC.0 not supported\n");
 
         #endif
 
