@@ -32,6 +32,8 @@ struct ppu {
     uint16_t cycles;
     uint8_t draw; // In case of LCDC.7 off, next time it is turning on the current frame should not being displayed
     uint8_t enable;
+    uint8_t draw_BG_window;
+    uint8_t draw_sprite;
 
     uint8_t sstate; // used to save ppu context when LCDC.7 is turn off
     uint8_t sly;
@@ -52,6 +54,8 @@ extern void ppu_reset( void) {
     ppu.cycles = 0;
     ppu.draw = 1;
     ppu.enable = 1;
+    ppu.draw_BG_window = 1;
+    ppu.draw_sprite = 1;
 
     return;
 }
@@ -94,6 +98,30 @@ extern void ppu_enable( void) {
     ppu.cycles = ppu.scycles;
 
     ppu.enable = 1;
+}
+
+extern void ppu_disable_BG_window( void) {
+
+    ppu.draw_BG_window = 0;
+    return;
+}
+
+extern void ppu_enable_BG_window( void) {
+
+    ppu.draw_BG_window = 1;
+    return;
+}
+
+extern void ppu_disable_sprite( void) {
+
+    ppu.draw_sprite = 0;
+    return;
+}
+
+extern void ppu_enable_sprite( void) {
+
+    ppu.draw_sprite = 1;
+    return;
 }
 
 void vblank( void) {
@@ -207,7 +235,11 @@ extern void ppu_run( uint64_t cycles) {
                     if ( !(ppu.enable))
                         return;
                     
-                    display_draw_line( ppu.ly);
+                    if ( ppu.draw_BG_window)
+                        display_draw_line_background( ppu.ly);
+
+                    if ( ppu.draw_sprite)
+                        display_draw_line_sprite( ppu.ly);
                 }
             }
 
@@ -235,7 +267,11 @@ extern void ppu_run( uint64_t cycles) {
                 if ( !(ppu.enable))
                     return;
 
-                display_draw_line( ppu.ly);
+                if ( ppu.draw_BG_window)
+                    display_draw_line_background( ppu.ly);
+
+                if ( ppu.draw_sprite)
+                    display_draw_line_sprite( ppu.ly);
 
                 #ifdef __DEBUG
                     display_try();

@@ -427,26 +427,12 @@ extern void display_try( void) {
     SDL_RenderClear( renderer2nd);
 }
 
-extern void display_draw_line( uint8_t ly) {
+extern void display_draw_line_background( uint8_t ly) {
 
     uint16_t tile[20];
-    struct sprite sprite[40];
-    uint8_t sprite_count = 0;
 
     for ( uint8_t i = 0; i < 20; i++)
         tile[i] = memory_read8( 0x9800 + i + ((ly / 8) * 32)) * 16;
-
-    for ( uint8_t i = 0; i < 40; i++) {
-
-        if ( memory_read8( 0xFE00 + i * 4) - 16 <= ly && memory_read8( 0xFE00 + i * 4) - 8 > ly) {
-
-            sprite[sprite_count].y = memory_read8( 0xFE00 + i * 4) - 16;
-            sprite[sprite_count].x = memory_read8( 0xFE01 + i * 4) - 8;
-            sprite[sprite_count].tile = memory_read8( 0xFE02 + i * 4) * 16;
-            sprite[sprite_count].flags = memory_read8( 0xFE03 + i * 4);
-            sprite_count++;
-        }
-    }
 
     for ( uint8_t i = 0; i < 20; i++) {
 
@@ -454,22 +440,18 @@ extern void display_draw_line( uint8_t ly) {
             case 0:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (0 + i * 8) * surface_line->format->BytesPerPixel)) = 0xFFFFFFFF;
-                //fprintf( stdout, "#");
                 break;
             case 1:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (0 + i * 8) * surface_line->format->BytesPerPixel)) = 0xAAAAAAAA;
-                //fprintf( stdout, "o");
                 break;
             case 2:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (0 + i * 8) * surface_line->format->BytesPerPixel)) = 0x55555555;
-                //fprintf( stdout, "o");
                 break;
             case 3:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (0 + i * 8) * surface_line->format->BytesPerPixel)) = 0x00000000;
-                //fprintf( stdout, " ");
                 break;
             #ifdef __DEBUG
             default:
@@ -483,22 +465,18 @@ extern void display_draw_line( uint8_t ly) {
             case 0:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (1 + i * 8) * surface_line->format->BytesPerPixel)) = 0xFFFFFFFF;
-                //fprintf( stdout, "#");
                 break;
             case 1:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (1 + i * 8) * surface_line->format->BytesPerPixel)) = 0xAAAAAAAA;
-                //fprintf( stdout, "o");
                 break;
             case 2:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (1 + i * 8) * surface_line->format->BytesPerPixel)) = 0x55555555;
-                //fprintf( stdout, "o");
                 break;
             case 3:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (1 + i * 8) * surface_line->format->BytesPerPixel)) = 0x00000000;
-                //fprintf( stdout, " ");
                 break;
             #ifdef __DEBUG
             default:
@@ -512,22 +490,18 @@ extern void display_draw_line( uint8_t ly) {
             case 0:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (2 + i * 8) * surface_line->format->BytesPerPixel)) = 0xFFFFFFFF;
-                //fprintf( stdout, "#");
                 break;
             case 1:
 
                 *((uint32_t *) ((uint8_t *)surface_line->pixels + ly * surface_line->pitch + (2 + i * 8) * surface_line->format->BytesPerPixel)) = 0xAAAAAAAA;
-                //fprintf( stdout, "o");
                 break;
             case 2:
 
                 *((uint32_t *) ((uint8_t *)surface_line->pixels + ly * surface_line->pitch + (2 + i * 8) * surface_line->format->BytesPerPixel)) = 0x55555555;
-                //fprintf( stdout, "o");
                 break;
             case 3:
 
                 *((uint32_t *) ((uint8_t *)surface_line->pixels + ly * surface_line->pitch + (2 + i * 8) * surface_line->format->BytesPerPixel)) = 0x00000000;
-                //fprintf( stdout, " ");
                 break;
             #ifdef __DEBUG
             default:
@@ -541,22 +515,18 @@ extern void display_draw_line( uint8_t ly) {
             case 0:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (3 + i * 8) * surface_line->format->BytesPerPixel)) = 0xFFFFFFFF;
-                //fprintf( stdout, "#");
                 break;
             case 1:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (3 + i * 8) * surface_line->format->BytesPerPixel)) = 0xAAAAAAAA;
-                //fprintf( stdout, "o");
                 break;
             case 2:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (3 + i * 8) * surface_line->format->BytesPerPixel)) = 0x55555555;
-                //fprintf( stdout, "o");
                 break;
             case 3:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (3 + i * 8) * surface_line->format->BytesPerPixel)) = 0x00000000;
-                //fprintf( stdout, " ");
                 break;
             #ifdef __DEBUG
             default:
@@ -570,22 +540,18 @@ extern void display_draw_line( uint8_t ly) {
             case 0:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (4 + i * 8) * surface_line->format->BytesPerPixel)) = 0xFFFFFFFF;
-                //fprintf( stdout, "#");
                 break;
             case 1:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (4 + i * 8) * surface_line->format->BytesPerPixel)) = 0xAAAAAAAA;
-                //fprintf( stdout, "o");
                 break;
             case 2:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (4 + i * 8) * surface_line->format->BytesPerPixel)) = 0x55555555;
-                //fprintf( stdout, "o");
                 break;
             case 3:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (4 + i * 8) * surface_line->format->BytesPerPixel)) = 0x00000000;
-                //fprintf( stdout, " ");
                 break;
             #ifdef __DEBUG
             default:
@@ -599,22 +565,18 @@ extern void display_draw_line( uint8_t ly) {
             case 0:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (5 + i * 8) * surface_line->format->BytesPerPixel)) = 0xFFFFFFFF;
-                //fprintf( stdout, "#");
                 break;
             case 1:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (5 + i * 8) * surface_line->format->BytesPerPixel)) = 0xAAAAAAAA;
-                //fprintf( stdout, "o");
                 break;
             case 2:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (5 + i * 8) * surface_line->format->BytesPerPixel)) = 0x55555555;
-                //fprintf( stdout, "o");
                 break;
             case 3:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (5 + i * 8) * surface_line->format->BytesPerPixel)) = 0x00000000;
-                //fprintf( stdout, " ");
                 break;
             #ifdef __DEBUG
             default:
@@ -628,22 +590,18 @@ extern void display_draw_line( uint8_t ly) {
             case 0:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (6 + i * 8) * surface_line->format->BytesPerPixel)) = 0xFFFFFFFF;
-                //fprintf( stdout, "#");
                 break;
             case 1:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (6 + i * 8) * surface_line->format->BytesPerPixel)) = 0xAAAAAAAA;
-                //fprintf( stdout, "o");
                 break;
             case 2:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (6 + i * 8) * surface_line->format->BytesPerPixel)) = 0x55555555;
-                //fprintf( stdout, "o");
                 break;
             case 3:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (6 + i * 8) * surface_line->format->BytesPerPixel)) = 0x00000000;
-                //fprintf( stdout, " ");
                 break;
             #ifdef __DEBUG
             default:
@@ -657,22 +615,18 @@ extern void display_draw_line( uint8_t ly) {
             case 0:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (7 + i * 8) * surface_line->format->BytesPerPixel)) = 0xFFFFFFFF;
-                //fprintf( stdout, "#");
                 break;
             case 1:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (7 + i * 8) * surface_line->format->BytesPerPixel)) = 0xAAAAAAAA;
-                //fprintf( stdout, "o");
                 break;
             case 2:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (7 + i * 8) * surface_line->format->BytesPerPixel)) = 0x55555555;
-                //fprintf( stdout, "o");
                 break;
             case 3:
 
                 *((uint32_t *) ((uint8_t *) surface_line->pixels + ly * surface_line->pitch + (7 + i * 8) * surface_line->format->BytesPerPixel)) = 0x00000000;
-                //fprintf( stdout, " ");
                 break;
             #ifdef __DEBUG
             default:
@@ -680,6 +634,24 @@ extern void display_draw_line( uint8_t ly) {
                 fprintf( stdout, "[FATAL] %s %d\n", __FILE__, __LINE__);
                 exit( EXIT_FAILURE);
             #endif
+        }
+    }
+}
+
+extern void display_draw_line_sprite( uint8_t ly) {
+
+    struct sprite sprite[40];
+    uint8_t sprite_count = 0;
+
+    for ( uint8_t i = 0; i < 40; i++) {
+
+        if ( memory_read8( 0xFE00 + i * 4) - 16 <= ly && memory_read8( 0xFE00 + i * 4) - 8 > ly) {
+
+            sprite[sprite_count].y = memory_read8( 0xFE00 + i * 4) - 16;
+            sprite[sprite_count].x = memory_read8( 0xFE01 + i * 4) - 8;
+            sprite[sprite_count].tile = memory_read8( 0xFE02 + i * 4) * 16;
+            sprite[sprite_count].flags = memory_read8( 0xFE03 + i * 4);
+            sprite_count++;
         }
     }
 
@@ -896,8 +868,6 @@ extern void display_draw_line( uint8_t ly) {
                 #endif
             }
     }
-
-    return;
 }
 
 extern void display_draw_final() {
