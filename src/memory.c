@@ -507,10 +507,10 @@ extern void memory_write8( uint16_t addr, uint8_t value) {
             /*else
                 fprintf( stdout, "[INFO]    write 0 to LCDC.2 (Sprite size 8x8)\n");*/
 
-            if (( value & 0b00000010) == 0)
-                ppu_disable_sprite();
+            if (( value & 0b00000010) == 0b00000010)
+                fprintf( stdout, "[WARNING] write 1 to LCDC.1 not supported\n");
             else
-                ppu_enable_sprite();
+                fprintf( stdout, "[WARNING] write 0 to LCDC.1 not supported\n");
 
             if (( value & 0b00000001) == 0)
                 ppu_disable_BG_window();

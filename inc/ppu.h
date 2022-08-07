@@ -11,7 +11,5 @@ extern void ppu_disable( void);
 extern void ppu_enable( void);
 extern void ppu_disable_BG_window( void);
 extern void ppu_enable_BG_window( void);
-extern void ppu_disable_sprite( void);
-extern void ppu_enable_sprite( void);
 
 #endif
