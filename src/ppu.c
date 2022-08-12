@@ -34,6 +34,7 @@ struct ppu {
     uint8_t enable;
     uint8_t draw_BG_window;
     uint8_t draw_sprite;
+    uint8_t addressing_mode;
 
     uint8_t sstate; // used to save ppu context when LCDC.7 is turn off
     uint8_t sly;
@@ -56,6 +57,7 @@ extern void ppu_reset( void) {
     ppu.enable = 1;
     ppu.draw_BG_window = 1;
     ppu.draw_sprite = 1;
+    ppu.addressing_mode = 1;
 
     return;
 }
@@ -121,6 +123,18 @@ extern void ppu_disable_sprite( void) {
 extern void ppu_enable_sprite( void) {
 
     ppu.draw_sprite = 1;
+    return;
+}
+
+extern void ppu_addressing_8000( void) {
+
+    ppu.addressing_mode = 1;
+    return;
+}
+
+extern void ppu_addressing_8800( void) {
+
+    ppu.addressing_mode = 0;
     return;
 }
 
@@ -236,7 +250,7 @@ extern void ppu_run( uint64_t cycles) {
                         return;
                     
                     if ( ppu.draw_BG_window)
-                        display_draw_line_background( ppu.ly);
+                        display_draw_line_background( ppu.ly, ppu.addressing_mode);
 
                     if ( ppu.draw_sprite)
                         display_draw_line_sprite( ppu.ly);
@@ -268,7 +282,7 @@ extern void ppu_run( uint64_t cycles) {
                     return;
 
                 if ( ppu.draw_BG_window)
-                    display_draw_line_background( ppu.ly);
+                    display_draw_line_background( ppu.ly, ppu.addressing_mode);
 
                 if ( ppu.draw_sprite)
                     display_draw_line_sprite( ppu.ly);

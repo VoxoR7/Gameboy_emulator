@@ -482,17 +482,30 @@ extern void memory_write8( uint16_t addr, uint8_t value) {
             else
                 ppu_enable();
 
-            //if (( value & 0b01000000) == 0)
-                fprintf( stdout, "[WARNING] write   to LCDC.6 not supported\n");
+            if (( value & 0b01000000) == 0)
+                fprintf( stdout, "[WARNING] write 0 to LCDC.6 not supported\n");
+            else
+                fprintf( stdout, "[WARNING] write 1 to LCDC.6 not supported\n");
 
-            //if (( value & 0b00100000) == 1)
-                fprintf( stdout, "[WARNING] write   to LCDC.5 not supported\n");
+            if (( value & 0b00100000) != 0)
+                /*fprintf( stdout, "[WARNING] write 0 to LCDC.5 not supported\n");
+            else*/
+                fprintf( stdout, "[WARNING] write 1 to LCDC.5 (Window enable) not supported\n");
 
-            //if (( value & 0b00010000) == 1)
-                fprintf( stdout, "[WARNING] write   to LCDC.4 not supported\n");
+            if (( value & 0b00010000) == 0) {
 
-            //if (( value & 0b00001000) == 1)
-                fprintf( stdout, "[WARNING] write   to LCDC.3 not supported\n");
+                fprintf( stdout, "[WARNING] write 0 to LCDC.4 ($8800 tile addressing) not supported\n");
+                ppu_addressing_8800();
+            } else {
+
+                fprintf( stdout, "[INFO]    write 1 to LCDC.4 ($8000 tile addressing) supported\n");
+                ppu_addressing_8000();
+            }
+
+            if (( value & 0b00001000) == 0)
+                fprintf( stdout, "[WARNING] write 0 to LCDC.3 not supported\n");
+            else
+                fprintf( stdout, "[WARNING] write 1 to LCDC.3 not supported\n");
 
             if (( value & 0b00000100) == 0b00000100)
                 fprintf( stdout, "[WARNING] write 1 to LCDC.2 (Sprite size 8x16) not supported\n");

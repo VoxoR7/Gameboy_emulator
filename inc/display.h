@@ -9,7 +9,7 @@ extern void display_second_destroy( void);
 
 extern void display_try( void);
 
-extern void display_draw_line_background( uint8_t ly);
+extern void display_draw_line_background( uint8_t ly, uint8_t addressing_mode);
 extern void display_draw_line_sprite( uint8_t ly);
 
 extern void display_draw_final();

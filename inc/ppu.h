@@ -14,5 +14,7 @@ extern void ppu_disable_BG_window( void);
 extern void ppu_enable_BG_window( void);
 extern void ppu_disable_sprite( void);
 extern void ppu_enable_sprite( void);
+extern void ppu_addressing_8000( void);
+extern void ppu_addressing_8800( void);
 
 #endif

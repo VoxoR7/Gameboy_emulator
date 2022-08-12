@@ -427,12 +427,16 @@ extern void display_try( void) {
     SDL_RenderClear( renderer2nd);
 }
 
-extern void display_draw_line_background( uint8_t ly) {
+extern void display_draw_line_background( uint8_t ly, uint8_t addressing_mode) {
 
-    uint16_t tile[20];
+    int16_t tile[20];
 
-    for ( uint8_t i = 0; i < 20; i++)
-        tile[i] = memory_read8( 0x9800 + i + ((ly / 8) * 32)) * 16;
+    if ( addressing_mode)
+        for ( uint8_t i = 0; i < 20; i++)
+            tile[i] = memory_read8( 0x9800 + i + ((ly / 8) * 32)) * 16;
+    else
+        for ( uint8_t i = 0; i < 20; i++)
+            tile[i] = (int8_t)(memory_read8( 0x9800 + i + ((ly / 8) * 32))) * 16;
 
     for ( uint8_t i = 0; i < 20; i++) {
 
