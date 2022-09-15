@@ -49,6 +49,8 @@ void get_rom_count( char *bpath) {
 
     // TODO check la taille des fichiers (bo)
 
+    rom_count = 0;
+
     #ifdef __WIN
         WIN32_FIND_DATA fdFile;
         HANDLE hFind = NULL;
@@ -96,23 +98,20 @@ void get_rom_count( char *bpath) {
     #elif __LIN
         DIR *d;
         struct dirent *dir;
+
         d = opendir(bpath);
 
-        char path[GET_ROM_MAX_PATH];
-
-        sprintf( path, "%s/*.*", bpath);
-
         if (d) {
-            while ((dir = readdir(d)) != NULL) {
-                
-                char tmp_name_file[GET_ROM_MAX_PATH];
-                strcpy(tmp_name_file, dir->d_name);
-                const uint32_t file_name_size = strlen( tmp_name_file);
-                const char *last = tmp_name_file + file_name_size - 2;
+            while ( (dir = readdir(d)) != NULL) {
 
-                if ( !strncmp( last, "gb", 2))
-                    rom_count++;
-                
+                if ( strlen( dir->d_name) < GET_ROM_MAX_PATH - 1) {
+
+                    char last[2];
+                    strncpy( last, dir->d_name + strlen( dir->d_name) - 2, 2);
+
+                    if ( !strncmp( last, "gb", 2))
+                        rom_count++;
+                }
             }
             closedir(d);
         }
@@ -191,22 +190,36 @@ void get_rom_fill( char *bpath) {
         if (d) {
             while ((dir = readdir(d)) != NULL) {
                 
-                char tmp_name_file[GET_ROM_MAX_PATH];
-                sprintf( path, "%s/%s", bpath, dir->d_name);
-                strcpy(tmp_name_file, dir->d_name);
-                const uint32_t file_name_size = strlen( tmp_name_file);
-                const char *last = tmp_name_file + file_name_size - 2;
+                if ( strlen( bpath) + strlen( dir->d_name) < GET_ROM_MAX_PATH - 1) {
 
-                if ( !strncmp( last, "gb", 2)){
-                    available_rom_path[rom_count] = malloc( sizeof( char) * (strlen( path) + 2));
-                    strcpy( available_rom_path[rom_count], path);
+                    char tmp_name_file[GET_ROM_MAX_PATH];
 
-                    available_rom_name[rom_count] = malloc( sizeof( char) * (file_name_size + 2));
-                    strcpy( available_rom_name[rom_count], dir->d_name);
+                    sprintf( path, "%s/%s", bpath, dir->d_name);
+                    strcpy(tmp_name_file, dir->d_name);
+                    uint32_t file_name_size = strlen( tmp_name_file);
 
-                    // fprintf( stdout, "[TEST] file name : %s (effective size %lu, malloced size %lu)\n", available_rom_path[rom_count], strlen( available_rom_path[rom_count]), strlen( path) + 2);
+                    char last[2];
+                    strncpy( last, dir->d_name + strlen( dir->d_name) - 2, 2);
 
-                    rom_count++;
+                    if ( !strncmp( last, "gb", 2)){
+                        available_rom_path[rom_count] = malloc( sizeof( char) * (strlen( path) + 2));
+                        strcpy( available_rom_path[rom_count], path);
+
+                        available_rom_name[rom_count] = malloc( sizeof( char) * (file_name_size + 2));
+                        if ( available_rom_name[rom_count] == NULL) {
+
+                            #ifdef __DEBUG
+                                fprintf( stderr, "[FATAL] no more memory %s:%d", __FILE__, __LINE__);
+                            #endif
+
+                            exit( EXIT_FAILURE);
+                        }
+                        strcpy( available_rom_name[rom_count], dir->d_name);
+
+                        // fprintf( stdout, "[TEST] file name : %s (effective size %lu, malloced size %lu)\n", available_rom_path[rom_count], strlen( available_rom_path[rom_count]), strlen( path) + 2);
+
+                        rom_count++;
+                    }
                 }
             }
             closedir(d);
@@ -290,5 +303,5 @@ extern void get_rom_next( char **rom_path, char **rom_name, uint8_t order) {
         *rom_path = available_rom_path[rom_number];
     
     if ( rom_name != NULL)
-        *rom_name = available_rom_name[rom_number];
+        strcpy( *rom_name, available_rom_name[rom_number]);
 }

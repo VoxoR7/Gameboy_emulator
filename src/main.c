@@ -46,7 +46,7 @@ void setup_base_path( void) {
 
     if ( last_sep == NULL) {
 
-        fprintf( stderr, "[FATAL] last separator can't be found !\n");
+        fprintf( stderr, "[FATAL] last separator can't be found ! (%s)\n", main_base_path);
         exit( EXIT_FAILURE);
     }
 
