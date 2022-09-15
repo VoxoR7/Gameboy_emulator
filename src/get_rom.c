@@ -107,7 +107,10 @@ void get_rom_count( char *bpath) {
                 if ( strlen( dir->d_name) < GET_ROM_MAX_PATH - 1) {
 
                     char last[2];
+                    #pragma GCC diagnostic push // I KNOW what im doing, i don't want the NUL byte in the string, don't worry GCC
+                    #pragma GCC diagnostic ignored "-Wstringop-truncation"
                     strncpy( last, dir->d_name + strlen( dir->d_name) - 2, 2);
+                    #pragma GCC diagnostic pop
 
                     if ( !strncmp( last, "gb", 2))
                         rom_count++;
@@ -199,7 +202,10 @@ void get_rom_fill( char *bpath) {
                     uint32_t file_name_size = strlen( tmp_name_file);
 
                     char last[2];
+                    #pragma GCC diagnostic push // I KNOW what im doing, i don't want the NUL byte in the string, don't worry GCC
+                    #pragma GCC diagnostic ignored "-Wstringop-truncation"
                     strncpy( last, dir->d_name + strlen( dir->d_name) - 2, 2);
+                    #pragma GCC diagnostic pop
 
                     if ( !strncmp( last, "gb", 2)){
                         available_rom_path[rom_count] = malloc( sizeof( char) * (strlen( path) + 2));
