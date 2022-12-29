@@ -60,9 +60,9 @@ extern void audio_init( void) {
 
     strcpy( music_path, main_base_path);
     #ifdef __WIN
-    strcat( music_path, "dat\\gameboy.mp3");
+        strcat( music_path, "dat\\gameboy.mp3");
     #elif __LIN
-    strcat( music_path, "dat/gameboy.mp3");
+        strcat( music_path, "dat/gameboy.mp3");
     #endif
     Mix_Music *music = Mix_LoadMUS( music_path);
 
@@ -81,11 +81,24 @@ extern void audio_tetris( void) {
     char music_path[2048];
 
     strcpy( music_path, main_base_path);
-    strcat( music_path, "dat\\tetris.mp3");
+    #ifdef __WIN
+        strcat( music_path, "dat\\tetris.mp3");
+    #elif __LIN
+        strcat( music_path, "dat/tetris.mp3");
+    #endif
 
     Mix_Music *music = Mix_LoadMUS( music_path);
+
+    if ( music == NULL) {
+
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Erreur chargement de la musique : %s", Mix_GetError());
+        Mix_CloseAudio();
+        exit( EXIT_FAILURE);
+    }
+
     Mix_HaltMusic();
     Mix_PlayMusic( music, -1);
+    audio_volume_unmute();
 }
 
 extern uint8_t audio_volume( void) {
