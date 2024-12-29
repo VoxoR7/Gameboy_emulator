@@ -1,5 +1,5 @@
-#ifndef __TOUCHE_H__
-#define __TOUCHE_H__
+#ifndef TOUCHE
+#define TOUCHE
 
 #include <inttypes.h>
 
@@ -58,7 +58,7 @@
 
 /*	initialisation du module touche
 	doit etre apeler une unique fois dans le programme */
-extern void touche_init( void);
+extern void touche_init(void);
 
 
 
@@ -68,10 +68,10 @@ extern void touche_init( void);
 
 /*	recupere l etat du clavier et de la souris
 	doit etre apeler dans une boucle avant les fonctions suivantes*/
-extern void touche_get( void);
+extern void touche_get(void);
 
 /* doit etre apeller a chaque tour de la boucle pour remettre la roue a 0 */
-extern void touche_reset_wheel_state( void);
+extern void touche_reset_wheel_state(void);
 
 
 
@@ -81,12 +81,12 @@ extern void touche_reset_wheel_state( void);
 
 /* 	recupere l etat d une touche
 	voir les define ci dessus pour les touches disponible */
-extern uint8_t touche_appuyer( uint16_t touche);
+extern uint8_t touche_appuyer(uint16_t touche);
 
-/* renvoie le TOTAL ( peut etre entre -127 et +128 ) du nombre de tour effectuer par l'utilasateur depuis le dernier apelle de SDL_reset_wheel_state. si negatif la roue est tournée vers le bas si positif la roue est tournée vers le haut */
-extern int8_t touche_wheel_state( void);
+/* renvoie le TOTAL (peut etre entre -127 et +128) du nombre de tour effectuer par l'utilasateur depuis le dernier apelle de SDL_reset_wheel_state. si negatif la roue est tournée vers le bas si positif la roue est tournée vers le haut */
+extern int8_t touche_wheel_state(void);
 
 /*	met les coordonees de la souris dans x et y */
-extern void touche_coord_souris( int32_t *x, int32_t *y );
+extern void touche_coord_souris(int32_t *x, int32_t *y);
 
 #endif

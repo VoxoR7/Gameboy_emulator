@@ -1,10 +1,10 @@
-#ifndef __TIMER__
-#define __TIMER__
+#ifndef TIMER
+#define TIMER
 
 #include <inttypes.h>
 
-extern void timer_init( void);
-extern void timer_tac( uint8_t value);
-extern void timer_run( uint64_t cycles);
+void timer_init(void);
+void timer_tac(uint8_t value);
+void timer_run(uint64_t cycles);
 
 #endif

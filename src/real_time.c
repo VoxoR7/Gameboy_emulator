@@ -2,23 +2,21 @@
 #include "real_time.h"
 
 #include <stdio.h>
-#ifdef __DEBUG
-    #include <stdio.h>
+#ifdef DEBUG
+#include <stdio.h>
 #endif
 #include <stdlib.h>
 #include <inttypes.h>
 
 #include <SDL2/SDL.h>
 
-#ifdef __WIN
-    #include "windows.h"
-#elif __LIN
-    #define __USE_POSIX199309
-    #include <time.h>
-#endif
-
-#ifndef __DEBUG
-    #define __DEBUG
+#ifdef __linux__
+#define __USE_POSIX199309
+#include <time.h>
+#elifdef _WIN32
+#include "windows.h"
+#else
+#error "target unknow"
 #endif
 
 #define TIME_MULT 1 // for debug purpose only. Should be 1
@@ -27,196 +25,181 @@
 uint64_t sync;
 uint64_t frame;
 
-#ifdef __WIN
-    LARGE_INTEGER last_lppc;
-    #ifdef __DEBUG
-        LARGE_INTEGER debug_lppc;
-    #endif
-#elif __LIN
-    struct timespec last_lppc;
-    #ifdef __DEBUG
-        struct timespec debug_lppc;
-    #endif
+#ifdef __linux__
+struct timespec last_lppc;
+#ifdef DEBUG
+struct timespec debug_lppc;
+#endif
+#elifdef _WIN32
+LARGE_INTEGER last_lppc;
+#ifdef DEBUG
+LARGE_INTEGER debug_lppc;
+#endif
+#else
+#error "target unknow"
 #endif
 
-static void real_time_destroy( void) {
-
+static void real_time_destroy(void) {
     return;
 }
 
-extern void real_time_reset( void) {
-
+void real_time_reset(void) {
     sync = 0;
     frame = 0;
 }
 
-extern void real_time_init( void) {
-
-    atexit( real_time_destroy);
-
+void real_time_init(void) {
+    atexit(real_time_destroy);
     real_time_reset();
 }
 
-extern void real_time_start( void) {
+void real_time_start(void) {
+    #ifdef __linux__
+    #ifdef DEBUG
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &last_lppc)) {
+        LOG_MESG(LOG_FATAL, "Unable to call the high performance counter");
+        exit(EXIT_FAILURE);
+    }
 
-    #ifdef __WIN
-        #ifdef __DEBUG
-            if ( !QueryPerformanceCounter( &last_lppc)) {
+    debug_lppc = last_lppc;
+    #else
+    clock_gettime(CLOCK_MONOTONIC_RAW, &last_lppc);
+    #endif  
+    #elifdef _WIN32
+    #ifdef DEBUG
+    if (!QueryPerformanceCounter(&last_lppc)) {
+        LOG_MESG(LOG_FATAL, "Unable to call the high performance counter");
+        exit(EXIT_FAILURE);
+    }
 
-                fprintf( stderr, "[FATAL] unable to call the high performance counter\n");
-                exit( EXIT_FAILURE);
-            }
-
-            debug_lppc.QuadPart = last_lppc.QuadPart;
-        #else
-            QueryPerformanceCounter( &last_lppc);
-        #endif
-    #elif __LIN
-        #ifdef __DEBUG
-            if ( clock_gettime( CLOCK_MONOTONIC_RAW, &last_lppc)) {
-
-                fprintf( stderr, "[FATAL] unable to call the high performance counter\n");
-                exit( EXIT_FAILURE);
-            }
-
-            debug_lppc = last_lppc;
-        #else
-            clock_gettime( CLOCK_MONOTONIC_RAW, &last_lppc);
-        #endif  
+    debug_lppc.QuadPart = last_lppc.QuadPart;
+    #else
+    QueryPerformanceCounter(&last_lppc);
+    #endif
+    #else
+    #error "target unknow"
     #endif
 }
 
-extern void real_time_wait( void) {
+void real_time_wait(void) {
+    #ifdef __linux__
+    struct timespec lppc;
 
-    #ifdef __WIN
-        LARGE_INTEGER lppc;
+    #ifdef DEBUG
+    static uint64_t lf = 0;
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &lppc)) {
+        LOG_MESG(LOG_FATAL, "Unable to call the high performance counter");
+        exit(EXIT_FAILURE);
+    }
+    #else
+    clock_gettime(CLOCK_MONOTONIC_RAW, &lppc);
+    #endif
 
-        #ifdef __DEBUG
-            static uint64_t lf = 0;
+    sync += ((lppc.tv_sec * 1000000000  + lppc.tv_nsec) - (last_lppc.tv_sec * 1000000000 + last_lppc.tv_nsec)) / 1000;
+    last_lppc = lppc;
+    frame++;
 
-            if ( !QueryPerformanceCounter( &lppc)) {
+    if (frame * SYNC > sync + 1000)
+        SDL_Delay((((uint64_t)(frame * SYNC)) - (sync + 1000)) / 1000);
 
-                fprintf( stderr, "[FATAL] unable to call the high performance counter\n");
-                exit( EXIT_FAILURE);
-            }
-        #else
-            QueryPerformanceCounter( &lppc);
-        #endif
+    #ifdef DEBUG
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &lppc)) {
+        LOG_MESG(LOG_FATAL, "Unable to call the high performance counter");
+        exit(EXIT_FAILURE);
+    }
+    #else
+    clock_gettime(CLOCK_MONOTONIC_RAW, &lppc);
+    #endif
 
-        sync += (lppc.QuadPart - last_lppc.QuadPart) / 10;
-        last_lppc.QuadPart = lppc.QuadPart;
-        frame++;
+    sync += ((lppc.tv_sec * 1000000000  + lppc.tv_nsec) - (last_lppc.tv_sec * 1000000000 + last_lppc.tv_nsec)) / 1000;
+    last_lppc = lppc;
 
-        if ( frame * SYNC > sync + 1000)
-            SDL_Delay( (((uint64_t)(frame * SYNC)) - (sync + 1000)) / 1000);
+    while (frame * SYNC > sync) {
+        SDL_Delay(1);
 
-        #ifdef __DEBUG
-            if ( !QueryPerformanceCounter( &lppc)) {
-
-                fprintf( stderr, "[FATAL] unable to call the high performance counter\n");
-                exit( EXIT_FAILURE);
-            }
-        #else
-            QueryPerformanceCounter( &lppc);
-        #endif
-
-        sync += (lppc.QuadPart - last_lppc.QuadPart) / 10;
-        last_lppc.QuadPart = lppc.QuadPart;
-
-        while ( frame * SYNC > sync) {
-
-            SDL_Delay( 1);
-
-            #ifdef __DEBUG
-                if ( !QueryPerformanceCounter( &lppc)) {
-
-                    fprintf( stderr, "[FATAL] unable to call the high performance counter\n");
-                    exit( EXIT_FAILURE);
-                }
-            #else
-                QueryPerformanceCounter( &lppc);
-            #endif
-
-            sync += (lppc.QuadPart - last_lppc.QuadPart) / 10;
-            last_lppc.QuadPart = lppc.QuadPart;
+        #ifdef DEBUG
+        if (clock_gettime(CLOCK_MONOTONIC_RAW, &lppc)) {
+            LOG_MESG(LOG_FATAL, "Unable to call the high performance counter");
+            exit(EXIT_FAILURE);
         }
-
-        #ifdef __DEBUG
-
-            if ( lppc.QuadPart / 10000 > ( debug_lppc.QuadPart / 10000) + 1000) {
-
-                fprintf( stdout, "[INFO] 1 second ellapsed info :\n");
-                fprintf( stdout, "[INFO]\t\ttime ellapsed  : %5"PRIu64".%"PRIu64"\n", (sync / 100000) / 10, (sync / 10000) % 100);
-                fprintf( stdout, "[INFO]\t\tframe ellapsed : %"PRIu64"\n", frame - lf);
-
-                lf = frame;
-                debug_lppc.QuadPart += 10000000;
-            }
-        #endif
-    #elif __LIN
-        struct timespec lppc;
-
-        #ifdef __DEBUG
-            static uint64_t lf = 0;
-
-            if ( clock_gettime( CLOCK_MONOTONIC_RAW, &lppc)) {
-
-                fprintf( stderr, "[FATAL] unable to call the high performance counter\n");
-                exit( EXIT_FAILURE);
-            }
         #else
-            clock_gettime( CLOCK_MONOTONIC_RAW, &lppc);
+        clock_gettime(CLOCK_MONOTONIC_RAW, &lppc);
         #endif
 
         sync += ((lppc.tv_sec * 1000000000  + lppc.tv_nsec) - (last_lppc.tv_sec * 1000000000 + last_lppc.tv_nsec)) / 1000;
         last_lppc = lppc;
-        frame++;
+    }
 
-        if ( frame * SYNC > sync + 1000)
-            SDL_Delay( (((uint64_t)(frame * SYNC)) - (sync + 1000)) / 1000);
+    #ifdef DEBUG
+    if ((lppc.tv_sec * 1000000000 + lppc.tv_nsec) / 1000 > ((debug_lppc.tv_sec * 1000000000 + debug_lppc.tv_nsec) / 1000) + 1000000) {
+        LOG_MESG(LOG_DEBUG, "1 second ellapsed info");
+        LOG_MESG(LOG_DEBUG, "\t\ttime ellapsed  : %5"PRIu64".%"PRIu64"", sync / 1000000, (sync / 10000) % 100);
+        LOG_MESG(LOG_DEBUG, "\t\tframe ellapsed : %"PRIu64"", frame - lf);
 
-        #ifdef __DEBUG
-            if ( clock_gettime( CLOCK_MONOTONIC_RAW, &lppc)) {
+        lf = frame;
+        debug_lppc.tv_sec += 1;
+    }
+    #endif
+    #elifdef _WIN32
+    LARGE_INTEGER lppc;
 
-                fprintf( stderr, "[FATAL] unable to call the high performance counter\n");
-                exit( EXIT_FAILURE);
-            }
-        #else
-            clock_gettime( CLOCK_MONOTONIC_RAW, &lppc);
-        #endif
+    #ifdef DEBUG
+    static uint64_t lf = 0;
 
-        sync += ((lppc.tv_sec * 1000000000  + lppc.tv_nsec) - (last_lppc.tv_sec * 1000000000 + last_lppc.tv_nsec)) / 1000;
-        last_lppc = lppc;
+    if (!QueryPerformanceCounter(&lppc)) {
+        LOG_MESG(LOG_FATAL, "Unable to call the high performance counter");
+        exit(EXIT_FAILURE);
+    }
+    #else
+    QueryPerformanceCounter(&lppc);
+    #endif
 
-        while ( frame * SYNC > sync) {
+    sync += (lppc.QuadPart - last_lppc.QuadPart) / 10;
+    last_lppc.QuadPart = lppc.QuadPart;
+    frame++;
 
-            SDL_Delay( 1);
+    if (frame * SYNC > sync + 1000)
+        SDL_Delay((((uint64_t)(frame * SYNC)) - (sync + 1000)) / 1000);
 
-            #ifdef __DEBUG
-                if ( clock_gettime( CLOCK_MONOTONIC_RAW, &lppc)) {
+    #ifdef DEBUG
+    if (!QueryPerformanceCounter(&lppc)) {
+        LOG_MESG(LOG_FATAL, "Unable to call the high performance counter");
+        exit(EXIT_FAILURE);
+    }
+    #else
+    QueryPerformanceCounter(&lppc);
+    #endif
 
-                    fprintf( stderr, "[FATAL] unable to call the high performance counter\n");
-                    exit( EXIT_FAILURE);
-                }
-            #else
-                clock_gettime( CLOCK_MONOTONIC_RAW, &lppc);
-            #endif
+    sync += (lppc.QuadPart - last_lppc.QuadPart) / 10;
+    last_lppc.QuadPart = lppc.QuadPart;
 
-            sync += ((lppc.tv_sec * 1000000000  + lppc.tv_nsec) - (last_lppc.tv_sec * 1000000000 + last_lppc.tv_nsec)) / 1000;
-            last_lppc = lppc;
+    while (frame * SYNC > sync) {
+        SDL_Delay(1);
+
+        #ifdef DEBUG
+        if (!QueryPerformanceCounter(&lppc)) {
+            LOG_MESG(LOG_FATAL, "Unable to call the high performance counter");
+            exit(EXIT_FAILURE);
         }
-
-        #ifdef __DEBUG
-
-            if ( (lppc.tv_sec * 1000000000 + lppc.tv_nsec) / 1000 > (( debug_lppc.tv_sec * 1000000000 + debug_lppc.tv_nsec) / 1000) + 1000000) {
-
-                fprintf( stdout, "[INFO] 1 second ellapsed info :\n");
-                fprintf( stdout, "[INFO]\t\ttime ellapsed  : %5"PRIu64".%"PRIu64"\n", sync / 1000000, (sync / 10000) % 100);
-                fprintf( stdout, "[INFO]\t\tframe ellapsed : %"PRIu64"\n", frame - lf);
-
-                lf = frame;
-                debug_lppc.tv_sec += 1;
-            }
+        #else
+        QueryPerformanceCounter(&lppc);
         #endif
+
+        sync += (lppc.QuadPart - last_lppc.QuadPart) / 10;
+        last_lppc.QuadPart = lppc.QuadPart;
+    }
+
+    #ifdef DEBUG
+    if (lppc.QuadPart / 10000 > (debug_lppc.QuadPart / 10000) + 1000) {
+        LOG_MESG(LOG_DEBUG, "1 second ellapsed info");
+        LOG_MESG(LOG_DEBUG, "\t\ttime ellapsed  : %5"PRIu64".%"PRIu64"", (sync / 100000) / 10, (sync / 10000) % 100);
+        LOG_MESG(LOG_DEBUG, "\t\tframe ellapsed : %"PRIu64"", frame - lf);
+
+        lf = frame;
+        debug_lppc.QuadPart += 10000000;
+    }
+    #endif
+    #else
+    #error "target unknow"
     #endif
 }

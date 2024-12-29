@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#ifdef __DEBUG
+#ifdef DEBUG
     #include <stdio.h>
 #endif
 
@@ -19,107 +19,64 @@
 #define INTERRUPT_REQUEST 0xFF0F
 #define INTERRUPT_ENABLE 0xFFFF
 
-uint8_t ime = 1;
+bool ime = true;
 
-void interrupt_destroy( void) {
-
-    
+static void interrupt_destroy(void) {
 }
 
-extern void interrupt_init( void) {
-
-    atexit( interrupt_destroy);
+void interrupt_init(void) {
+    atexit(interrupt_destroy);
 }
 
-extern void interrupt_enable( void) {
-
-    ime = 1;
+void interrupt_enable(void) {
+    ime = true;
 }
 
-extern void interrupt_disable( void) {
-
-    ime = 0;
+void interrupt_disable(void) {
+    ime = false;
 }
 
-extern void interrupt_request( uint8_t interrupt) {
-
-    memory_write8( INTERRUPT_REQUEST, memory_read8( INTERRUPT_REQUEST) | interrupt);
+void interrupt_request(uint8_t interrupt) {
+    memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) | interrupt);
 }
 
-extern void interrupt_run() {
-
-    /*#ifdef __DEBUG
-    if ( memory_read8( INTERRUPT_REQUEST) & INTERRUPT_BIT_VBLANK && !ime)
-            fprintf( stdout, "[INFO] : INTERRUPT REQUESTED, INTERRUPT_BIT_VBLANK, BUT IME IS NOT ALLOWING\n");
-    #endif*/
-
-    if ( !ime)
+void interrupt_run(void) {
+    if (!ime)
         return;
 
-    uint8_t int_requested = memory_read8( INTERRUPT_REQUEST) & memory_read8( INTERRUPT_ENABLE);
+    uint8_t int_requested = memory_read8(INTERRUPT_REQUEST) & memory_read8(INTERRUPT_ENABLE);
 
-    /*#ifdef __DEBUG
-    if ( int_requested & INTERRUPT_BIT_VBLANK)
-            fprintf( stdout, "[INFO] : INTERRUPT REQUESTED, INTERRUPT_BIT_VBLANK, BUT INTERRUPT_ENABLE IS NOT ALLOWING\n");
-    #endif*/
-
-    if ( int_requested & INTERRUPT_BIT_VBLANK) {
-
-        /*#ifdef __DEBUG
-            fprintf( stdout, "[INFO] : INTERRUPT REQUESTED, INTERRUPT_BIT_VBLANK\n");
-        #endif*/
-
+    if (int_requested & INTERRUPT_BIT_VBLANK) {
         ime = 0;
-        memory_write8( INTERRUPT_REQUEST, memory_read8( INTERRUPT_REQUEST) & ~INTERRUPT_BIT_VBLANK);
-        cpu_interrupt( INTERRUPT_ADDR_VBLANK);
+        memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) & ~INTERRUPT_BIT_VBLANK);
+        cpu_interrupt(INTERRUPT_ADDR_VBLANK);
         return;
-    } else if ( int_requested & INTERRUPT_BIT_LCDSTAT) {
-
-        /*#ifdef __DEBUG
-            fprintf( stdout, "[INFO] : INTERRUPT REQUESTED, INTERRUPT_BIT_LCDSTAT\n");
-        #endif*/
-
+    } else if (int_requested & INTERRUPT_BIT_LCDSTAT) {
         ime = 0;
-        memory_write8( INTERRUPT_REQUEST, memory_read8( INTERRUPT_REQUEST) & ~INTERRUPT_BIT_LCDSTAT);
-        cpu_interrupt( INTERRUPT_ADDR_LCDSTAT);
+        memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) & ~INTERRUPT_BIT_LCDSTAT);
+        cpu_interrupt(INTERRUPT_ADDR_LCDSTAT);
         return;
-    } else if ( int_requested & INTERRUPT_BIT_TIMER) {
-
-        /*#ifdef __DEBUG
-            fprintf( stdout, "[INFO] : INTERRUPT REQUESTED, INTERRUPT_BIT_TIMER\n");
-        #endif*/
-
+    } else if (int_requested & INTERRUPT_BIT_TIMER) {
         ime = 0;
-        memory_write8( INTERRUPT_REQUEST, memory_read8( INTERRUPT_REQUEST) & ~INTERRUPT_BIT_TIMER);
-        cpu_interrupt( INTERRUPT_ADDR_TIMER);
+        memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) & ~INTERRUPT_BIT_TIMER);
+        cpu_interrupt(INTERRUPT_ADDR_TIMER);
         return;
-    } else if ( int_requested & INTERRUPT_BIT_SERIAL) {
-
-        /*#ifdef __DEBUG
-            fprintf( stdout, "[INFO] : INTERRUPT REQUESTED, INTERRUPT_BIT_SERIAL\n");
-        #endif*/
-
+    } else if (int_requested & INTERRUPT_BIT_SERIAL) {
         ime = 0;
-        memory_write8( INTERRUPT_REQUEST, memory_read8( INTERRUPT_REQUEST) & ~INTERRUPT_BIT_SERIAL);
-        cpu_interrupt( INTERRUPT_ADDR_SERIAL);
+        memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) & ~INTERRUPT_BIT_SERIAL);
+        cpu_interrupt(INTERRUPT_ADDR_SERIAL);
         return;
-    } else if ( int_requested & INTERRUPT_BIT_JOYPAD) {
-
-        /*#ifdef __DEBUG
-            fprintf( stdout, "[INFO] : INTERRUPT REQUESTED, INTERRUPT_BIT_JOYPAD\n");
-        #endif*/
-
+    } else if (int_requested & INTERRUPT_BIT_JOYPAD) {
         ime = 0;
-        memory_write8( INTERRUPT_REQUEST, memory_read8( INTERRUPT_REQUEST) & ~INTERRUPT_BIT_JOYPAD);
-        cpu_interrupt( INTERRUPT_ADDR_JOYPAD);
+        memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) & ~INTERRUPT_BIT_JOYPAD);
+        cpu_interrupt(INTERRUPT_ADDR_JOYPAD);
         return;
     } else
         return;
 }
 
-#ifdef __DEBUG
-    extern uint8_t interrupt_ask( void) {
-
-        return ime;
-    }
+#ifdef DEBUG
+bool interrupt_ask(void) {
+    return ime;
+}
 #endif

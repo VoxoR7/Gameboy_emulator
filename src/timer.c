@@ -27,20 +27,15 @@
 uint8_t tac;
 uint16_t inc_freq = (CLOCK_SPEED / TIMER_FREQ_0);
 
-void timer_destroy( void) {
-
+static void timer_destroy(void) {
     return;
 }
 
-extern void timer_init( void) {
-
-    atexit( timer_destroy);
-
-    return;
+void timer_init(void) {
+    atexit(timer_destroy);
 }
 
-extern void timer_tac( uint8_t value) { // timer control
-
+void timer_tac(uint8_t value) { // timer control
     tac = value;
 
     if ((value & 0b00000011) == 0b00)
@@ -53,37 +48,32 @@ extern void timer_tac( uint8_t value) { // timer control
         inc_freq = (CLOCK_SPEED / TIMER_FREQ_1);
 }
 
-extern void timer_run( uint64_t cycles) {
-
+void timer_run(uint64_t cycles) {
     static uint64_t last_cycles = 0;
     static uint16_t current_cycles_timer = 0, current_cycles_div = 0;
 
-    uint16_t current_cycles = ( cycles - last_cycles);
+    uint16_t current_cycles = (cycles - last_cycles);
     last_cycles = cycles;
 
     current_cycles_div += current_cycles;
 
-    if ( current_cycles_div > TIMER_CLOCK_DIV) {
-
+    if (current_cycles_div > TIMER_CLOCK_DIV) {
         current_cycles -= TIMER_CLOCK_DIV;
 
-        memory_special_service_div( memory_read8( TIMER_DIV) + 1);
+        memory_special_service_div(memory_read8(TIMER_DIV) + 1);
     }
 
-    if ( memory_read8( TIMER_TAC) & 0b00000100) {
-
+    if (memory_read8(TIMER_TAC) & 0b00000100) {
         current_cycles_timer += current_cycles;
 
-        if ( current_cycles_timer > inc_freq) {
-
+        if (current_cycles_timer > inc_freq) {
             current_cycles_timer -= inc_freq;
 
-            if ( memory_read8( TIMER_TIMA) == 255) {
-
-                memory_write8( TIMER_TIMA, memory_read8( TIMER_TMA));
-                interrupt_request( INTERRUPT_BIT_TIMER);
+            if (memory_read8(TIMER_TIMA) == 255) {
+                memory_write8(TIMER_TIMA, memory_read8(TIMER_TMA));
+                interrupt_request(INTERRUPT_BIT_TIMER);
             } else
-                memory_write8( TIMER_TIMA, memory_read8( TIMER_TIMA) + 1);
+                memory_write8(TIMER_TIMA, memory_read8(TIMER_TIMA) + 1);
 
         }
     }

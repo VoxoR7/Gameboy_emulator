@@ -1,5 +1,5 @@
-#ifndef __INTERRUPT__
-#define __INTERRUPT__
+#ifndef INTERRUPT
+#define INTERRUPT
 
 #include <inttypes.h>
 
@@ -9,14 +9,14 @@
 #define INTERRUPT_BIT_SERIAL 0b00001000
 #define INTERRUPT_BIT_JOYPAD 0b00010000
 
-extern void interrupt_init( void);
-extern void interrupt_enable( void);
-extern void interrupt_disable( void);
-extern void interrupt_request( uint8_t interrupt);
-extern void interrupt_run();
+void interrupt_init(void);
+void interrupt_enable(void);
+void interrupt_disable(void);
+void interrupt_request(uint8_t interrupt);
+void interrupt_run(void);
 
-#ifdef __DEBUG
-    extern uint8_t interrupt_ask( void);
+#ifdef STEP
+    bool interrupt_ask(void);
 #endif
 
 #endif

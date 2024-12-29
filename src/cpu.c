@@ -7,9 +7,9 @@
 #include "memory.h"
 #include "interrupt.h"
 
-#ifdef __DEBUG
+#ifdef DEBUG
     #include <string.h>
-#elif __STEP
+#elifdef STEP
     #include <string.h>
 #endif
 
@@ -114,45 +114,41 @@ struct registers {
 	uint16_t sp;
 	uint16_t pc;
 
-    #ifdef __DEBUG
+    #ifdef DEBUG
         uint64_t ex;
     #endif
 };
 
-#if __STEP
+#if STEP
     uint8_t verbose = 1;
 #endif
 
 struct registers registers;
 uint64_t emul_time = 0;
 
-void cpu_destroy( void) {
-
-    #ifdef __DEBUG
-        fprintf( stderr, "executed : %"PRIu64"\n", registers.ex);
+static void cpu_destroy(void) {
+    #ifdef DEBUG
+        LOG_MESG(LOG_DEBUG, "executed: %"PRIu64"", registers.ex);
     #endif
 
     return;
 }
 
-extern void cpu_pc() {
-
-    fprintf( stderr, "PC : 0x%04x\n", registers.pc);
+void cpu_pc(void) {
+    LOG_MESG(LOG_INFO, "PC : 0x%04x", registers.pc);
 }
 
-extern void cpu_init() {
+void cpu_init(void) {
+    atexit(cpu_destroy);
 
-    atexit( cpu_destroy);
-
-    #ifdef __DEBUG
-
+    #ifdef DEBUG
         uint16_t inst = 1; // 0xCB
 
-        for ( uint16_t i = 0; i < 256; i++)
-            if ( instruction_time[i])
+        for (uint16_t i = 0; i < 256; i++)
+            if (instruction_time[i])
                 inst++;
 
-        fprintf( stdout, "[INFO] %"PRIu16"/243 (%2.2f%%) instructions fully implemented (0xCB counting)\n", inst, (inst/243.0)*100.0);
+        LOG_MESG(LOG_DEBUG, "%"PRIu16"/243 (%2.2f%%) instructions fully implemented (0xCB counting)", inst, (inst/243.0)*100.0);
     #endif
 
     registers.pc = 0x0100;
@@ -169,76 +165,72 @@ extern void cpu_init() {
     registers.hl = 0x000D;
     registers.sp = 0xFFFE;
 
-    #ifdef __DEBUG
+    #ifdef DEBUG
         registers.ex = 0;
     #endif
 
     emul_time = 0;
 }
 
-void cpu_execute( uint8_t opcode, uint8_t op8, uint16_t op16) {
+static void cpu_execute(uint8_t opcode, uint8_t op8, uint16_t op16) {
 
-    #ifdef __WIN
-        #include "dat\cpu.h"
-    #elif __LIN
+    #ifdef __linux__
         #include "dat/cpu.h"
+    #elifdef _WIN32
+        #include "dat\cpu.h"
+    #else
+        #error "unknow target"
     #endif
 }
 
-#ifdef __WIN
-    #include "dat\cpu_debug.h"
-#elif __LIN
+#ifdef __linux__
     #include "dat/cpu_debug.h"
+#elifdef _WIN32
+    #include "dat\cpu_debug.h"
+#else
+    #error "unknow target"
 #endif
 
-extern void cpu_interrupt( uint16_t addr) {
-
+void cpu_interrupt(uint16_t addr) {
     registers.sp -= 2;
-    memory_write16( registers.sp, registers.pc);
+    memory_write16(registers.sp, registers.pc);
     registers.pc = addr;
 }
 
-extern uint64_t cpu_run() {
-
+uint64_t cpu_run(void) {
     uint8_t inst;
 
-    #ifdef __STEP
+    #ifdef STEP
         cpu_debugger();
-
-        // SIMULATE A PRESS
-        /*if ( !(memory_read8( 0xFF00) & 0b00100000))
-            memory_write8( 0xFF00, 0b00100001);*/
     #endif
 
-    inst = memory_read8( registers.pc);
+    inst = memory_read8(registers.pc);
 
-    #ifdef __STEP
-        if ( verbose)
-            fprintf( stdout, "[INFO] : execute at \t0x%02x, instruction \t0x%02x \t(%d)\t\ttime = %"PRIu64"\n", registers.pc, inst, inst, emul_time);
+    #ifdef STEP
+        if (verbose)
+            LOG_MESG(LOG_DEBUG, "execute at \t0x%02x, instruction \t0x%02x \t(%d)\t\ttime = %"PRIu64"", registers.pc, inst, inst, emul_time);
     #endif
 
     (registers.pc)++;
 
-    if ( instruction_operand[inst] == 0)
-        cpu_execute( inst, 0, 0);
-    else if ( instruction_operand[inst] == 1) {
-
+    if (instruction_operand[inst] == 0)
+        cpu_execute(inst, 0, 0);
+    else if (instruction_operand[inst] == 1) {
         (registers.pc)++;
-        cpu_execute( inst, memory_read8( registers.pc - 1), 0);
+        cpu_execute(inst, memory_read8(registers.pc - 1), 0);
     } else {
-
         registers.pc += 2;
-        cpu_execute( inst, 0, memory_read16( registers.pc - 2));
+        cpu_execute(inst, 0, memory_read16(registers.pc - 2));
     }
 
     emul_time += instruction_time[inst];
 
-    #ifdef __DEBUG
-        if ( !(instruction_time[inst]) && inst != 0xCB)
-            fprintf( stdout, "[WARNING] instruction 0x%02x (%"PRIu8") does not have time\n", inst, inst);
+    #ifdef DEBUG
+        if (instruction_time[inst] == 0 && inst != 0xCB)
+            LOG_MESG(LOG_WARN, "Instruction 0x%02x (%"PRIu8") does not have time", inst, inst);
     #endif
 
-    #ifdef __DEBUG
+    #ifdef DEBUG
         (registers.ex)++;
     #endif
 

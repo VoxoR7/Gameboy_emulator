@@ -1,11 +1,10 @@
-#ifndef __REAL_TIME__
-#define __REAL_TIME__
+#ifndef REAL_TIME
+#define REAL_TIME
 
-extern void real_time_init( void);
-extern void real_time_reset( void);
+void real_time_init(void);
+void real_time_reset(void);
 
-extern void real_time_start( void);
-
-extern void real_time_wait( void);
+void real_time_start(void);
+void real_time_wait(void);
 
 #endif

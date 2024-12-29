@@ -1,12 +1,14 @@
-#ifndef __MAIN__
-#define __MAIN__
+#ifndef MAIN
+#define MAIN
+
+#include "log.h"
 
 #define MAJOR_VERSION 0
 #define MINOR_VERSION 0
 #define BUILD 3
 
-#ifdef __DEBUG
-	#define NO_IMPL fprintf( stderr, "[CRITICAL] : NO IMPLEMENTATION : %s:%d\n", __FILE__, __LINE__);
+#ifdef DEBUG
+#define NO_IMPL LOG_MESG(LOG_FATAL, "no implementation");
 #endif
 
 #define CLOCK_DIVIDER 4

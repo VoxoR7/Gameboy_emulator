@@ -1,12 +1,12 @@
-#ifndef __CPU__
-#define __CPU__
+#ifndef CPU
+#define CPU
 
 #include <inttypes.h>
 
-extern void cpu_init();
-extern void cpu_interrupt( uint16_t addr);
-extern uint64_t cpu_run();
+void cpu_init(void);
+void cpu_interrupt(uint16_t addr);
+uint64_t cpu_run(void);
 
-extern void cpu_pc();
+void cpu_pc(void);
 
 #endif
