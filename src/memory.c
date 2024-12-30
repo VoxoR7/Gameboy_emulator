@@ -9,6 +9,7 @@
 #include "cpu.h"
 #include "touche.h"
 #include "ppu.h"
+#include "timer.h"
 
 #define MEMORY_SIZE 0x10000
 
@@ -341,8 +342,10 @@ void memory_write8(uint16_t addr, uint8_t value) {
         memory[addr] = value;
     else if (addr == 0xFF06) // TMA - Timer Modulo (R/W)
         memory[addr] = value;
-    else if (addr == 0xFF07) // TAC - Timer Control (R/W)
+    else if (addr == 0xFF07) { // TAC - Timer Control (R/W)
         memory[addr] = value;
+        timer_tac(value);
+    }
     
     else if (addr == 0xFF0F) // IF - Interrupt flag (R/W)
         memory[addr] = value;
@@ -556,6 +559,7 @@ uint8_t memory_read8(uint16_t addr) {
         return memory[addr];
     else if (addr == 0xFF44) // LY - (LCD Y Coordinate) (R)
         return memory[addr];
+        // return 0x90;
     else if (addr == 0xFF45) // LYC - (LY Compare) (R/W)
         return memory[addr];
     else if (addr == 0xFF47) // BGP (BG Palette Data) (R/W) - Non CGB Mode Only

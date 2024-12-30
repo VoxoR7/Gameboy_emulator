@@ -41,33 +41,41 @@ void interrupt_request(uint8_t interrupt) {
 }
 
 void interrupt_run(void) {
-    if (!ime)
+    if (!ime && !cpu_halted())
         return;
 
     uint8_t int_requested = memory_read8(INTERRUPT_REQUEST) & memory_read8(INTERRUPT_ENABLE);
 
+    if (!ime && cpu_halted()) {
+        if (int_requested) {
+            cpu_wake_up();
+        }
+
+        return;
+    }
+
     if (int_requested & INTERRUPT_BIT_VBLANK) {
-        ime = 0;
+        ime = false;
         memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) & ~INTERRUPT_BIT_VBLANK);
         cpu_interrupt(INTERRUPT_ADDR_VBLANK);
         return;
     } else if (int_requested & INTERRUPT_BIT_LCDSTAT) {
-        ime = 0;
+        ime = false;
         memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) & ~INTERRUPT_BIT_LCDSTAT);
         cpu_interrupt(INTERRUPT_ADDR_LCDSTAT);
         return;
     } else if (int_requested & INTERRUPT_BIT_TIMER) {
-        ime = 0;
+        ime = false;
         memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) & ~INTERRUPT_BIT_TIMER);
         cpu_interrupt(INTERRUPT_ADDR_TIMER);
         return;
     } else if (int_requested & INTERRUPT_BIT_SERIAL) {
-        ime = 0;
+        ime = false;
         memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) & ~INTERRUPT_BIT_SERIAL);
         cpu_interrupt(INTERRUPT_ADDR_SERIAL);
         return;
     } else if (int_requested & INTERRUPT_BIT_JOYPAD) {
-        ime = 0;
+        ime = false;
         memory_write8(INTERRUPT_REQUEST, memory_read8(INTERRUPT_REQUEST) & ~INTERRUPT_BIT_JOYPAD);
         cpu_interrupt(INTERRUPT_ADDR_JOYPAD);
         return;

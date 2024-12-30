@@ -65,7 +65,7 @@ static void banner(void) {
     fprintf(stdout, " \\___/  \\___/ /_/\\_\\ \\___/ \\_| \\_|  \\____/ \\__,_||_| |_| |_| \\___||_.__/  \\___/  \\__, |  \\___||_| |_| |_| \\__,_||_| \\__,_| \\__||_| \\___/ |_| |_|\n");
     fprintf(stdout, "                                                                                  __/ |                                                         \n");
     fprintf(stdout, "                                                                                 |___/                                                          \n\n");
-    LOG_MESG(LOG_INFO, "Welcome to the VoxoR Gameboy emulation.");
+    LOG_MESG(LOG_INFO, "Welcome to the VoxoR Gameboy emulator.");
     LOG_MESG(LOG_INFO, "This is the version %d.%d.%d", MAJOR_VERSION, MINOR_VERSION, BUILD);
 
     #ifdef DEBUG

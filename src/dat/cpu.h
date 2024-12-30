@@ -52,12 +52,12 @@ switch (opcode) {
             LOG_MESG(LOG_DEBUG, "0x04 B++");
         #endif
 
-        if ((((registers.b & 0x0F) + (registers.b & 0x0F)) & 0x10) == 0x10)
+        registers.f &= ~FLAGS_N;
+
+        if ((registers.b & 0x0F) + 1 == 0x10)
             registers.f |= FLAGS_H;
         else
             registers.f &= ~FLAGS_H;
-
-        registers.f &= ~FLAGS_N;
 
         (registers.b)++;
 
@@ -504,14 +504,14 @@ switch (opcode) {
 
         break;
     case 29: // 0x1D E--
-        // reviewed OK
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0x1D E-- REVIEWED\n");
+                LOG_MESG(LOG_DEBUG, "0x1D E--\n");
         #endif
 
-        if ((registers.e & 0x0F) == 0x00)
+        registers.f |= FLAGS_N;
+
+        if (((registers.e & 0x0F) - 1) & 0x10)
             registers.f |= FLAGS_H;
         else
             registers.f &= ~FLAGS_H;
@@ -519,16 +519,13 @@ switch (opcode) {
         (registers.e)--;
 
         if (registers.e)
-            registers.f &= ~(FLAGS_Z | FLAGS_N);
-        else {
-
-            registers.f &= (~FLAGS_N);
+            registers.f &= ~FLAGS_Z;
+        else
             registers.f |= FLAGS_Z;
-        }
 
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : e 0x%02x (%"PRIu8")\n", registers.e, registers.e);
+                LOG_MESG(LOG_DEBUG, "e 0x%02x (%"PRIu8")\n", registers.e, registers.e);
         #endif
 
         break;
@@ -548,34 +545,28 @@ switch (opcode) {
 
         break;
     case 31: // 0x1F ROTATE A RIGHT TROUGH CARRY
-
         #ifdef STEP
             if (verbose)
-                fprintf(stdout, "[INFO] : 0x1F ROTATE A RIGHT TROUGH CARRYn");
+                fprintf(stdout, "0x1F ROTATE A RIGHT TROUGH CARRYn");
         #endif
 
-        if (registers.f & FLAGS_C)
-            registers.f = FLAGS_N;
-        else
-            registers.f = 0;
+        bool carry = registers.f & FLAGS_C ? true : false;
+
+        registers.f = 0;
 
         if (registers.a & 0b00000001)
             registers.f |= FLAGS_C;
+        else
+            registers.f &= ~FLAGS_C;
 
         registers.a = registers.a >> 1;
 
-        if (registers.f & FLAGS_N) {
-
+        if (carry)
             registers.a |= 0b10000000;
-            registers.f &= ~FLAGS_N;
-        }
-
-        if (!(registers.a))
-            registers.f |= FLAGS_Z;
 
         #ifdef STEP
             if (verbose)
-                fprintf(stdout, "\t[INFO] : a = %d (0x%02x)\n", registers.a, registers.a);
+                fprintf(stdout, "\ta = %d (0x%02x)\n", registers.a, registers.a);
         #endif
 
         break;
@@ -639,18 +630,24 @@ switch (opcode) {
 
         break;
     case 36: // 0x24 H++
-
         #ifdef STEP
             if (verbose)
                 LOG_MESG(LOG_DEBUG, "[INFO] : 0x24 H++\n");
         #endif
 
+        if ((((registers.h & 0x0F) + 1) & 0x10) == 0x10)
+            registers.f |= FLAGS_H;
+        else
+            registers.f &= ~FLAGS_H;
+
         (registers.h)++;
 
-        registers.f &= ~FLAGS_N;
-
-        if (!(registers.h))
+        if (registers.h)
+            registers.f &= ~(FLAGS_Z | FLAGS_N);
+        else {
+            registers.f &= (~FLAGS_N);
             registers.f |= FLAGS_Z;
+        }
 
         #ifdef STEP
             if (verbose)
@@ -679,17 +676,16 @@ switch (opcode) {
 
         break;
     case 38: // 0x26 H = XX
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0x26 H = XX\n");
+                LOG_MESG(LOG_DEBUG, "0x26 H = XX (0x%02X)\n", op8);
         #endif
 
-        registers.hl = op8;
+        registers.h = op8;
 
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : hl 0x%02x %"PRIu8"\n", registers.hl, registers.hl);
+                LOG_MESG(LOG_DEBUG, "h 0x%02x %"PRIu8"\n", registers.h, registers.h);
         #endif
 
         break;
@@ -810,47 +806,54 @@ switch (opcode) {
 
         break;
     case 44: // 0x2C L++
-
         #ifdef STEP
             if (verbose)
                 LOG_MESG(LOG_DEBUG, "[INFO] : 0x2C L++\n");
         #endif
+
+        if ((((registers.l & 0x0F) + 1) & 0x10) == 0x10)
+            registers.f |= FLAGS_H;
+        else
+            registers.f &= ~FLAGS_H;
 
         (registers.l)++;
 
         if (registers.l)
             registers.f &= ~(FLAGS_Z | FLAGS_N);
         else {
-
             registers.f &= (~FLAGS_N);
             registers.f |= FLAGS_Z;
         }
 
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : l 0x%02x (%"PRIu8")\n", registers.l, registers.l);
+                LOG_MESG(LOG_DEBUG, "[INFO] :l 0x%02x (%"PRIu8"), flags: %02X\n", registers.l, registers.l, registers.f);
         #endif
 
         break;
     case 45: // 0x2D L--
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0x2D L--\n");
+                LOG_MESG(LOG_DEBUG, "0x2D L--\n");
         #endif
+
+        registers.f |= FLAGS_N;
+
+        if (((registers.l & 0x0F) - 1) & 0x10)
+            registers.f |= FLAGS_H;
+        else
+            registers.f &= ~FLAGS_H;
 
         (registers.l)--;
 
-        if (registers.l) {
-
+        if (registers.l)
             registers.f &= ~FLAGS_Z;
-            registers.f |= FLAGS_N;
-        } else
-            registers.f |= FLAGS_Z | FLAGS_N;
+        else
+            registers.f |= FLAGS_Z;
 
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : l 0x%02x (%"PRIu8")\n", registers.l, registers.l);
+                LOG_MESG(LOG_DEBUG, "l 0x%02x (%"PRIu8")\n", registers.l, registers.l);
         #endif
 
         break;
@@ -974,24 +977,28 @@ switch (opcode) {
 
         break;
     case 53: // 0x35 *(HL)--
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0x35 *(HL)--\n");
+                LOG_MESG(LOG_DEBUG, "0x35 *(HL)--\n");
         #endif
+
+        registers.f |= FLAGS_N;
+
+        if (((memory_read8(registers.hl) & 0x0F) - 1) & 0x10)
+            registers.f |= FLAGS_H;
+        else
+            registers.f &= ~FLAGS_H;
 
         memory_write8(registers.hl, memory_read8(registers.hl) - 1);
 
-        if (memory_read8(registers.hl)) {
-
+        if (memory_read8(registers.hl))
             registers.f &= ~FLAGS_Z;
-            registers.f |= FLAGS_N;
-        } else
-            registers.f |= (FLAGS_Z | FLAGS_N);
+        else
+            registers.f |= FLAGS_Z;
 
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : *(HL) = 0x%02x (%"PRIu8")\n", memory_read8(registers.hl), memory_read8(registers.hl));
+                LOG_MESG(LOG_DEBUG, "*(HL) = 0x%02x (%"PRIu8")\n", memory_read8(registers.hl), memory_read8(registers.hl));
         #endif
 
         break;
@@ -1068,22 +1075,28 @@ switch (opcode) {
 
         break;
     case 61: // 0x3D A--
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0x3D A--\n");
+                LOG_MESG(LOG_DEBUG, "0x3D A--\n");
         #endif
+
+        registers.f |= FLAGS_N;
+
+        if (((registers.a & 0x0F) - 1) & 0x10)
+            registers.f |= FLAGS_H;
+        else
+            registers.f &= ~FLAGS_H;
 
         (registers.a)--;
 
         if (registers.a)
-            registers.f = FLAGS_N;
+            registers.f &= ~FLAGS_Z;
         else
-            registers.f = FLAGS_Z | FLAGS_N;
+            registers.f |= FLAGS_Z;
 
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : a 0x%02x (%"PRIu8")\n", registers.a, registers.a);
+                LOG_MESG(LOG_DEBUG, "a 0x%02x (%"PRIu8")\n", registers.a, registers.a);
         #endif
 
         break;
@@ -1127,6 +1140,20 @@ switch (opcode) {
         #ifdef STEP
             if (verbose)
                 LOG_MESG(LOG_DEBUG, "[INFO] : b = 0x%02x (%"PRIu8")\n", registers.b, registers.b);
+        #endif
+
+        break;
+    case 67: // 0x43 B = E
+        #ifdef STEP
+            if (verbose)
+                LOG_MESG(LOG_DEBUG, "0x43 B = E\n");
+        #endif
+
+        registers.b = registers.e;
+
+        #ifdef STEP
+            if (verbose)
+                LOG_MESG(LOG_DEBUG, "b = 0x%02x (%"PRIu8")\n", registers.b, registers.b);
         #endif
 
         break;
@@ -1536,13 +1563,12 @@ switch (opcode) {
 
         break;
     case 118: // 0x76 HALT
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0x76 HALT\n");
+                LOG_MESG(LOG_DEBUG, "0x76 HALT\n");
         #endif
 
-        (registers.pc)--;
+        registers.halted = true;
 
         break;
     case 119: // 0x77 *(HL) = A
@@ -2176,6 +2202,25 @@ switch (opcode) {
         #endif
 
         break;
+    case 173: // 0xAD A ^= L
+        #ifdef STEP
+            if (verbose)
+                LOG_MESG(LOG_DEBUG, "0xAD A ^= L\n");
+        #endif
+
+        registers.a ^= registers.l;
+
+        if (registers.a)
+            registers.f = 0;
+        else
+            registers.f = FLAGS_Z;
+
+        #ifdef STEP
+            if (verbose)
+                LOG_MESG(LOG_DEBUG, "a 0x%02x;\n", registers.a);
+        #endif
+
+        break;
     case 174: // 0xAE A ^= *(HL)
 
         #ifdef STEP
@@ -2586,18 +2631,20 @@ switch (opcode) {
 
         break;
     case 198: // 0xC6 A += XX
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0xC6 A += XX\n");
+                LOG_MESG(LOG_DEBUG, "0xC6 A += XX (0x%02X)\n", op8);
         #endif
+
+        registers.f = 0;
+
+        if (((registers.a & 0X0F) + (op8 & 0x0F)) > 0x0F)
+            registers.f |= FLAGS_H;
 
         registers.a += op8;
 
         if (registers.a < op8)
-            registers.f = FLAGS_C;
-        else
-            registers.f = 0;
+            registers.f |= FLAGS_C;
 
         if (!(registers.a))
             registers.f |= FLAGS_Z;
@@ -3676,33 +3723,47 @@ switch (opcode) {
 
         break;
     case 206: // 0xCE A += XX + FLAGS_C
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0xCE A += XX + FLAGS_C\n");
+                LOG_MESG(LOG_DEBUG, "0xCE A += XX (0x%02X) + FLAGS_C\n", op8);
         #endif
+
+        uint8_t new_flags = 0;
+
+        if (((uint64_t)registers.a) + (registers.f & FLAGS_C ? 1 : 0) + ((uint64_t)op8) > 0xFF)
+            new_flags |= FLAGS_C;
+
+        if ((registers.a & 0x0F) + (op8 & 0x0F) + (registers.f & FLAGS_C ? 1 : 0) >= 0x10)
+            new_flags |= FLAGS_H;
 
         registers.a += op8;
 
         if (registers.f & FLAGS_C)
             (registers.a)++;
 
-        if (registers.a < op8)
-            registers.f = FLAGS_C;
-        else
-            registers.f = 0;
+        registers.f = new_flags;
 
         if (!registers.a)
             registers.f |= FLAGS_Z;
 
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : a = 0x%02x (%"PRIu8"); op8 0x%02x (%"PRIu8")\n", registers.a, registers.a, op8, op8);
+                LOG_MESG(LOG_DEBUG, "a = 0x%02x (%"PRIu8"); op8 0x%02x (%"PRIu8")\n", registers.a, registers.a, op8, op8);
         #endif
 
         break;
-    case 208: // 0xD0 RET IF !FLAGS_C
+    case 207: // 0xCF RST 08
+        #ifdef STEP
+            if (verbose)
+                LOG_MESG(LOG_DEBUG, "0xCF RST 08\n");
+        #endif
 
+        registers.sp -= 2;
+        memory_write16(registers.sp, registers.pc);
+        registers.pc = 0x0008;
+        
+        break;
+    case 208: // 0xD0 RET IF !FLAGS_C
         #ifdef STEP
             if (verbose)
                 LOG_MESG(LOG_DEBUG, "[INFO] : 0xD0 RET IF !FLAGS_C\n");
@@ -3732,8 +3793,17 @@ switch (opcode) {
         #endif
 
         break;
-    case 213: // 0xD5 PUSH DE
+    case 210: // 0xD2 JP NC
+        #ifdef STEP
+            if (verbose)
+                LOG_MESG(LOG_DEBUG, "0xD2 JP NC\n");
+        #endif
 
+        if ((registers.f & FLAGS_C) == 0)
+            registers.pc = op16;
+
+        break;
+    case 213: // 0xD5 PUSH DE
         #ifdef STEP
             if (verbose)
                 LOG_MESG(LOG_DEBUG, "[INFO] : 0xD5 PUSH DE\n");
@@ -3744,25 +3814,27 @@ switch (opcode) {
 
         break;
     case 214: // 0xD6 A -= XX
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0xD6 A -= XX\n");
+                LOG_MESG(LOG_DEBUG, "0xD6 A -= XX (0x%02X)\n", op8);
         #endif
+
+        registers.f = FLAGS_ALL;
+
+        if (!(((registers.a & 0xf) - (op8 & 0xf)) & 0x10))
+            registers.f &= ~FLAGS_H;
+
+        if (registers.a >= op8)
+            registers.f &= ~FLAGS_C;
 
         registers.a -= op8;
 
-        if (registers.a > op8)
-            registers.f = FLAGS_C | FLAGS_N;
-        else
-            registers.f = FLAGS_N;
-
-        if (!(registers.a))
-            registers.f |= FLAGS_Z;
+        if (registers.a)
+            registers.f &= ~FLAGS_Z;
 
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : XX 0x%02x (%"PRIu8"); a 0x%02x (%"PRIu8")\n", op8, op8, registers.a, registers.a);
+                LOG_MESG(LOG_DEBUG, "XX 0x%02x (%"PRIu8"); result: a 0x%02x (%"PRIu8")\n", op8, op8, registers.a, registers.a);
         #endif
 
         break;
@@ -3846,6 +3918,17 @@ switch (opcode) {
         }
 
         break;
+    case 223: // 0xDF RST 18
+        #ifdef STEP
+            if (verbose)
+                LOG_MESG(LOG_DEBUG, "0xDF RST 18\n");
+        #endif
+
+        registers.sp -= 2;
+        memory_write16(registers.sp, registers.pc);
+        registers.pc = 0x0018;
+        
+        break;
     case 224: // 0xE0 *(0xFF00 + XX) = A
 
         #ifdef STEP
@@ -3908,9 +3991,9 @@ switch (opcode) {
         registers.a &= op8;
         
         if (registers.a)
-            registers.f = 0;
+            registers.f = FLAGS_H;
         else
-            registers.f = FLAGS_Z;
+            registers.f = FLAGS_H | FLAGS_Z;
 
         #ifdef STEP
             if (verbose)
@@ -4002,33 +4085,31 @@ switch (opcode) {
 
         break;
     case 240: // 0xF0  A = *(0xFF00 + XX)
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0xF0  A = *(0xFF00 + XX)\n");
+                LOG_MESG(LOG_DEBUG, "0xF0  A = *(0xFF00 + XX)\n");
         #endif
 
         registers.a = memory_read8(0xFF00 + op8);
 
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : a 0x%02x; XX -> 0x%02x\n", registers.a, op8);
+                LOG_MESG(LOG_DEBUG, "a 0x%02x; XX -> 0x%02x\n", registers.a, op8);
         #endif
 
         break;
     case 241: // 0xF1 POP AF
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0xF1 POP AF\n");
+                LOG_MESG(LOG_DEBUG, "0xF1 POP AF\n");
         #endif
 
-        registers.af = memory_read16(registers.sp);
+        registers.af = memory_read16(registers.sp) & 0xFFF0;
         registers.sp += 2;
 
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : af 0x%02x (%"PRIu16")\n", registers.af, registers.af);
+                LOG_MESG(LOG_DEBUG, "af 0x%02x (%"PRIu16")\n", registers.af, registers.af);
         #endif
 
         break;
@@ -4074,20 +4155,20 @@ switch (opcode) {
 
         break;
     case 248: // 0xF8 HL = SP + (signed)op8
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0xF8 HL = SP + (signed)op8\n");
+                LOG_MESG(LOG_DEBUG, "0xF8 HL = SP + (signed)op8\n");
         #endif
+
+        registers.f = 0;
 
         registers.hl = registers.sp + (int8_t)op8;
 
-        if ((int8_t)op8 < 0 && registers.hl > registers.sp)
-            registers.f = FLAGS_C;
-        else if ((int8_t)op8 > 0 && registers.hl < registers.sp)
-            registers.f = FLAGS_C;
-        else
-            registers.f = 0;
+        if (((registers.sp ^ op8 ^ registers.hl) & 0x10) == 0x10)
+            registers.f |= FLAGS_H;
+
+        if (((registers.sp ^ ((int8_t)op8) ^ registers.hl) & 0x100) == 0x100)
+            registers.f |= FLAGS_C;
 
         break;
     case 249: // 0xF9 SP = HL
@@ -4133,23 +4214,24 @@ switch (opcode) {
     // case 252: 0xFC BAD INSTRUCTION
     // case 253: 0xFD BAD INSTRUCTION
     case 254: // 0xFE A == XX (compare A - XX)
-
         #ifdef STEP
             if (verbose)
-                LOG_MESG(LOG_DEBUG, "[INFO] : 0xFE A == XX (compare A - XX -> 0x%02x)\n", op8);
+                LOG_MESG(LOG_DEBUG, "0xFE A == XX (compare A - XX -> 0x%02x)\n", op8);
         #endif
 
-        if (registers.a == op8)
-            registers.f = FLAGS_Z | FLAGS_N;
-        else
-            registers.f = FLAGS_N;
+        registers.f = FLAGS_ALL;
 
-        if (registers.a < op8)
-            registers.f |= FLAGS_C;
+        if (!(((registers.a & 0xf) - (op8 & 0xf)) & 0x10))
+            registers.f &= ~FLAGS_H;
+
+        if (registers.a >= op8)
+            registers.f &= ~FLAGS_C;
+
+        if (registers.a != op8)
+            registers.f &= ~FLAGS_Z;
 
         break;
     case 255: // 0xFF RST 0x38
-
         #ifdef STEP
             if (verbose)
                 LOG_MESG(LOG_DEBUG, "[INFO] : 0xFF RST 0x38\n");

@@ -1,0 +1,6 @@
+bin
+rom
+obj
+!rom/README.md
+
+.vscode

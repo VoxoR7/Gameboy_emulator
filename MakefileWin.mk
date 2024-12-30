@@ -37,7 +37,7 @@ prepare:
 	cd $(LIB)\lib-log\build && $(CMAKE) -G "MinGW Makefiles" -D CMAKE_MAKE_PROGRAM=$(MAKE) -D CMAKE_C_COMPILER=C:/Users/mvaud/Documents/info/tools/winlibs-x86_64-posix-seh-gcc-13.2.0-mingw-w64ucrt-11.0.1-r5/mingw64/bin/gcc.exe -DCMAKE_LINKER=$(LLD) .. && $(MAKE)
 
 $(BIN)\$(PROG_NAME): $(OBJ)\main.o $(OBJ)\get_rom.o $(OBJ)\cpu.o $(OBJ)\memory.o $(OBJ)\timer.o $(OBJ)\interrupt.o $(OBJ)\ppu.o $(OBJ)\touche.o $(OBJ)\display.o $(OBJ)\audio.o $(OBJ)\real_time.o
-	$(CC) $^ -o $@ -L$(SDL_LIB) -L$(SDL_MIX_LIB) -L$(SDL_TTF_LIB) -L$(LIB)\lib-log\build $(LD_FLAGS)
+	$(CC) $^ -o $@ -L$(SDL_LIB) -L$(SDL_MIX_LIB) -L$(SDL_TTF_LIB) -L$(LIB)\lib-log\build $(LD_FLAGS) $(LD_FLAGS_ADDITIONAL)
 
 $(OBJ)\main.o: $(SRC)\main.c $(INC)\main.h
 	$(CC) -c $< -o $@ -I$(INC) -I$(LIB)\lib-log\inc -I$(SDL_INC) $(C_FLAGS)
