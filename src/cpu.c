@@ -15,7 +15,7 @@
 #endif
 
 #ifdef STEP
-void cpu_debugger(void);
+static void cpu_debugger(void);
 #endif
 
 #define FLAGS_Z 0b10000000
@@ -309,6 +309,39 @@ uint64_t cpu_run(void) {
 }
 
 #ifdef STEP
+static void registers_display(void) {
+    fprintf(stdout, "debugger> ----------- REGISTERS ----------\n");
+    fprintf(stdout, "debugger> af     0x%04x\n", registers.af);
+    fprintf(stdout, "debugger> bc     0x%04x\n", registers.bc);
+    fprintf(stdout, "debugger> de     0x%04x\n", registers.de);
+    fprintf(stdout, "debugger> hl     0x%04x\n", registers.hl);
+    fprintf(stdout, "debugger> sp     0x%04x\n", registers.sp);
+    fprintf(stdout, "debugger> pc     0x%04x\n", registers.pc);
+
+    fprintf(stdout, "debugger> flags");
+    if (registers.f & FLAGS_Z)
+        fprintf(stdout, " FLAG_Z");
+    if (registers.f & FLAGS_N)
+        fprintf(stdout, " FLAG_N");
+    if (registers.f & FLAGS_H)
+        fprintf(stdout, " FLAG_H");
+    if (registers.f & FLAGS_C)
+        fprintf(stdout, " FLAG_C");
+    fprintf(stdout, "\n");
+}
+
+static void memory_content_display(uint16_t address, uint16_t above, uint16_t under) {
+    uint16_t max = (uint64_t)address + (uint64_t)above > UINT16_MAX ? UINT16_MAX : address + above;
+    uint16_t min = address < under ? 0 : address - under;
+
+    fprintf(stdout, "debugger> ----------- MEMORY ----------\n");
+    for (uint16_t current_addr = max; current_addr >= min; current_addr--)
+        if (current_addr == address)
+            fprintf(stdout, "debugger> \033[1m0x%04x: 0x%02x\033[0m\n", current_addr, prot_memory_read8(current_addr));
+        else
+            fprintf(stdout, "debugger> 0x%04x: 0x%02x\n", current_addr, prot_memory_read8(current_addr));
+}
+
 static void cpu_debugger(void) {
     #define MAX_CMD 500
     #define MAX_BREAKPOINTS 500
@@ -317,7 +350,7 @@ static void cpu_debugger(void) {
     static char last[MAX_CMD];
     static int64_t toexecute = 0;
     static int32_t addr, breakpoints[MAX_BREAKPOINTS];
-    static int8_t init = 1, display_register = 0;
+    static int8_t init = 1, display_register = 0, display_memory = 0;
     uint16_t breakpoint = MAX_BREAKPOINTS, tmp16;
 
     if (init == 1) {
@@ -339,24 +372,11 @@ static void cpu_debugger(void) {
 
     if (toexecute == 0) {
         if (display_register) {
-            fprintf(stdout, "debugger> --------DISPLAY REGISTER-------\n");
-            fprintf(stdout, "debugger> af    %d (0x%02x)\n", registers.af, registers.af);
-            fprintf(stdout, "debugger> bc    %d (0x%02x)\n", registers.bc, registers.bc);
-            fprintf(stdout, "debugger> de    %d (0x%02x)\n", registers.de, registers.de);
-            fprintf(stdout, "debugger> hl    %d (0x%02x)\n", registers.hl, registers.hl);
-            fprintf(stdout, "debugger> sp    %d (0x%02x)\n", registers.sp, registers.sp);
-            fprintf(stdout, "debugger> pc    0x%02x\n", registers.pc);
+            registers_display();
+        }
 
-            fprintf(stdout, "debugger> flags ");
-            if (registers.f & FLAGS_Z)
-                fprintf(stdout, "FLAG_Z ");
-            if (registers.f & FLAGS_N)
-                fprintf(stdout, "FLAG_N ");
-            if (registers.f & FLAGS_H)
-                fprintf(stdout, "FLAG_H ");
-            if (registers.f & FLAGS_C)
-                fprintf(stdout, "FLAG_C");
-            fprintf(stdout, "\n");
+        if (display_memory) {
+            memory_content_display(registers.sp, 8, 2);
         }
 
         if (breakpoint != MAX_BREAKPOINTS)
@@ -382,8 +402,9 @@ static void cpu_debugger(void) {
                 fprintf(stdout, "debugger> breakpoint [VALUE]\ndebugger>\tplace breakpoint at adresse VALUE\n");
                 fprintf(stdout, "debugger> delete [VALUE]\ndebugger>\tdelete breakpoint at adresse VALUE\n");
                 fprintf(stdout, "debugger> info breakpoints\ndebugger>\tlist all active breakpoints\n");
-                fprintf(stdout, "debugger> info registers\ndebugger>\tprint all register\n");
-
+                fprintf(stdout, "debugger> info registers\ndebugger>\tprint all registers\n");
+                fprintf(stdout, "debugger> display registers\ndebugger>\tcontinuously display registers\n");
+                fprintf(stdout, "debugger> display memory\ndebugger>\tcontinuously display memory\n");
             } else if (!strncmp(cmd, "print ", 6)) {
                 if (!strcmp(cmd + 6, "a"))
                     fprintf(stdout, "debugger> %d (0x%02x)\n", registers.a, registers.a);
@@ -439,7 +460,7 @@ static void cpu_debugger(void) {
                         cmd[0] = '!';
                     } else {
                         sscanf(cmd + 8, "%04x", &addr);
-                        fprintf(stdout, "debugger> %"PRIu8"\n", prot_memory_read8(addr));
+                        memory_content_display(addr, 4, 4);
                     }
                 } else
                     fprintf(stdout, "debugger> unknow register or ram adresse\n");
@@ -501,32 +522,7 @@ static void cpu_debugger(void) {
                         fprintf(stdout, "debugger>\tbreakpoints %d at 0x%02x\n", i, breakpoints[i]);
 
             } else if (!strncmp(cmd, "info registers", 14)) {
-                fprintf(stdout, "debugger> a     %d (0x%02x)\n", registers.a, registers.a);
-                fprintf(stdout, "debugger> f     %d (0x%02x)\n", registers.f, registers.f);
-                fprintf(stdout, "debugger> af    %d (0x%02x)\n", registers.af, registers.af);
-                fprintf(stdout, "debugger> b     %d (0x%02x)\n", registers.b, registers.b);
-                fprintf(stdout, "debugger> c     %d (0x%02x)\n", registers.c, registers.c);
-                fprintf(stdout, "debugger> bc    %d (0x%02x)\n", registers.bc, registers.bc);
-                fprintf(stdout, "debugger> d     %d (0x%02x)\n", registers.d, registers.d);
-                fprintf(stdout, "debugger> e     %d (0x%02x)\n", registers.e, registers.e);
-                fprintf(stdout, "debugger> de    %d (0x%02x)\n", registers.de, registers.de);
-                fprintf(stdout, "debugger> h     %d (0x%02x)\n", registers.h, registers.h);
-                fprintf(stdout, "debugger> l     %d (0x%02x)\n", registers.l, registers.l);
-                fprintf(stdout, "debugger> hl    %d (0x%02x)\n", registers.hl, registers.hl);
-                fprintf(stdout, "debugger> sp    %d (0x%02x)\n", registers.sp, registers.sp);
-                fprintf(stdout, "debugger> pc    0x%02x\n", registers.pc);
-
-                fprintf(stdout, "debugger> flags ");
-                if (registers.f & FLAGS_Z)
-                    fprintf(stdout, "FLAG_Z ");
-                if (registers.f & FLAGS_N)
-                    fprintf(stdout, "FLAG_N ");
-                if (registers.f & FLAGS_H)
-                    fprintf(stdout, "FLAG_H ");
-                if (registers.f & FLAGS_C)
-                    fprintf(stdout, "FLAG_C");
-                fprintf(stdout, "\n");
-
+                registers_display();
             } else if (!strncmp(cmd, "display registers", 17)) {
                 if (display_register) {
                     fprintf(stdout, "debugger> switching display register OFF\n");
@@ -535,7 +531,15 @@ static void cpu_debugger(void) {
                     fprintf(stdout, "debugger> switching display register ON\n");
                     display_register = 1;
                 }
-            }else if (strncmp(cmd, "step", 4))
+            } else if (!strncmp(cmd, "display memory", 15)) {
+                if (display_memory) {
+                    fprintf(stdout, "debugger> switching display memory OFF\n");
+                    display_memory = 0;
+                } else {
+                    fprintf(stdout, "debugger> switching display memory ON\n");
+                    display_memory = 1;
+                }
+            } else if (strncmp(cmd, "step", 4))
                 fprintf(stdout, "debugger> unknow command\n");
         } while (strncmp(cmd, "continue", 8) && strncmp(cmd, "step", 4));
     } else if (toexecute != -1)
